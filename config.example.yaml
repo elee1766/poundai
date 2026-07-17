@@ -1,0 +1,94 @@
+# zsh_poundai configuration.
+# Copy to ~/.config/zsh_poundai.yaml (or $XDG_CONFIG_HOME/zsh_poundai.yaml).
+
+# Which service profile to use. Overridable per-shell with $ZSH_POUNDAI_SERVICE
+# or per-call with `zsh_poundai -service <name>`.
+service: lmstudio
+
+services:
+  # --- Local providers ---------------------------------------------------
+  local:
+    provider: ollama                  # native Ollama API, no key needed
+    base_url: http://localhost:11434  # default; can be omitted
+    model: qwen2.5-coder:7b
+    temperature: 0.2
+
+  llamacpp:
+    provider: openai                  # llama.cpp / vLLM expose an
+    base_url: http://localhost:8080/v1  # OpenAI-compatible endpoint
+    api_key: dummy
+    model: default
+
+  lmstudio:
+    provider: openai
+    base_url: http://192.168.0.111:1234/v1
+    api_key: lm-studio
+    model: openai/gpt-oss-20b
+    timeout: 120s
+
+  # --- Cloud providers ---------------------------------------------------
+  openai:
+    provider: openai
+    api_key_env: OPENAI_API_KEY       # read the key from the environment...
+    # api_key: sk-...                 # ...or set it literally
+    model: gpt-4o-mini
+    temperature: 0.2
+    max_tokens: 1000
+    timeout: 30s
+
+  groq:
+    provider: groq
+    api_key_env: GROQ_API_KEY
+    model: llama-3.3-70b-versatile
+
+  mistral:
+    provider: mistral
+    api_key_env: MISTRAL_API_KEY
+    model: codestral-latest
+
+  openrouter:
+    provider: openrouter
+    api_key_env: OPENROUTER_API_KEY
+    model: anthropic/claude-3.5-haiku
+
+  gemini:
+    provider: gemini
+    api_key_env: GEMINI_API_KEY
+    model: gemini-2.0-flash
+
+  anthropic:
+    provider: anthropic
+    api_key_env: ANTHROPIC_API_KEY
+    model: claude-3-5-haiku-latest
+
+  bedrock:
+    provider: bedrock                 # uses the standard AWS credential chain
+    region: us-east-1
+    model: anthropic.claude-3-5-haiku-20241022-v1:0
+
+# Prompt customization.
+prompt:
+  # The built-in default prompt is minimal, which evals show is best for
+  # strong models (gpt-oss-20b+, claude, gpt-4o). For small local models
+  # (<= ~14B) point optimized_file at a rich prompt artifact instead:
+  # system: ""                        # fully replace the built-in system prompt
+  system_extra: ""                    # appended to the system prompt, e.g.
+                                      # "Prefer long flags. This machine runs NixOS."
+  # optimized_file: ~/.config/zsh_poundai_prompt.json
+  #                                   # DSPy-optimized system prompt + few-shot
+  #                                   # demos; format: {"system": "...", "demos": [...]}
+
+# Extra context injected into the system prompt on every completion.
+context:
+  cwd: true          # current working directory
+  os: true           # OS/arch + distro pretty-name
+  history: 10        # last N commands from $HISTFILE (0 = off)
+  env: []            # env var names to include, e.g. [VIRTUAL_ENV, KUBECONFIG]
+  commands:          # arbitrary commands whose output is injected
+    - name: git
+      command: git status -sb 2>/dev/null
+      timeout: 500ms
+      max_bytes: 2048
+    # - name: files
+    #   command: ls -1 | head -20
+    #   timeout: 300ms
