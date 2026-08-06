@@ -177,6 +177,11 @@ func TestUserMessage(t *testing.T) {
 	if got := in.UserMessage(); got != "#!/bin/zsh\n\nls" {
 		t.Errorf("UserMessage() = %q", got)
 	}
+
+	bash := Input{Buffer: "ls", Cursor: 2, Shell: "bash"}
+	if got := bash.UserMessage(); got != "#!/bin/bash\n\nls" {
+		t.Errorf("bash UserMessage() = %q", got)
+	}
 }
 
 func TestMessages(t *testing.T) {
@@ -212,5 +217,19 @@ func TestMessagesDemoWithoutHash(t *testing.T) {
 	// Comment without "#" should get "# " prepended.
 	if msgs[1].Content != "#!/bin/zsh\n\n# list pods" {
 		t.Errorf("demo user = %q", msgs[1].Content)
+	}
+}
+
+func TestBashMessagesAndClean(t *testing.T) {
+	in := Input{Buffer: "# list files", Cursor: 12, Shell: "bash"}
+	msgs := Messages("sys", []prompt.Demo{{Comment: "show date", Command: "date"}}, in)
+	if got := msgs[1].Content; got != "#!/bin/bash\n\n# show date" {
+		t.Errorf("demo user = %q", got)
+	}
+	if got := msgs[3].Content; got != "#!/bin/bash\n\n# list files" {
+		t.Errorf("user message = %q", got)
+	}
+	if got := Clean("#!/bin/bash\n\nls -la", in); got != "\nls -la" {
+		t.Errorf("Clean() = %q", got)
 	}
 }

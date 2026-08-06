@@ -10,6 +10,7 @@ build:
 
 test:
 	go test ./...
+	bash tests/bash_plugin_test.bash
 
 install: build
 	install -d $(BINDIR)

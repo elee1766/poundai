@@ -47,12 +47,15 @@ add-zsh-hook precmd _poundai_highlight_setup
 # Returns 0 on success, 1 on error.
 _poundai_generate() {
     local text=$1 cursor=$2 errfile
+    local service=${ZSH_POUNDAI_SERVICE:-${POUNDAI_SERVICE:-}}
+    local config=${ZSH_POUNDAI_CONFIG:-${POUNDAI_CONFIG:-}}
     errfile=$(mktemp "${TMPDIR:-/tmp}/zsh_poundai.XXXXXX") || return 1
 
     REPLY=$(printf '%s' "$text" | \
         POUNDAI_HISTFILE="$HISTFILE" \
-        POUNDAI_SERVICE="${ZSH_POUNDAI_SERVICE:-}" \
-        POUNDAI_CONFIG="${ZSH_POUNDAI_CONFIG:-}" \
+        POUNDAI_SERVICE="$service" \
+        POUNDAI_CONFIG="$config" \
+        POUNDAI_SHELL=zsh \
         "$ZSH_POUNDAI_BIN" "$cursor" 2>"$errfile")
     local rc=$?
 

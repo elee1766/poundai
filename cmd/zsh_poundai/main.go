@@ -1,4 +1,4 @@
-// zsh_poundai reads the current ZLE buffer on stdin and a cursor offset as
+// zsh_poundai reads the current shell editing buffer on stdin and a cursor offset as
 // its argument, asks the configured LLM to complete the command, and prints
 // the text to insert at the cursor.
 package main

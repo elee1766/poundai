@@ -1,6 +1,6 @@
 // Package cli implements the zsh_poundai command-line interface.
 //
-// It reads the ZLE buffer on stdin, a cursor offset as a positional argument,
+// It reads the shell editing buffer on stdin, a cursor offset as a positional argument,
 // asks the configured LLM to complete the command, and prints the result to
 // stdout.
 package cli
@@ -49,7 +49,7 @@ func Run() error {
 		showVersion = flag.Bool("version", false, "print version and exit")
 	)
 	flag.Usage = func() {
-		fmt.Fprintf(flag.CommandLine.Output(), "usage: zsh_poundai [flags] <cursor>\n\nreads the ZLE buffer on stdin; prints the completion on stdout\n\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "usage: zsh_poundai [flags] <cursor>\n\nreads the shell editing buffer on stdin; prints the completion on stdout\n\n")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
@@ -75,7 +75,7 @@ func Run() error {
 	if err != nil {
 		return fmt.Errorf("reading stdin: %w", err)
 	}
-	in := complete.Input{Buffer: string(buffer), Cursor: cursor}
+	in := complete.Input{Buffer: string(buffer), Cursor: cursor, Shell: os.Getenv("POUNDAI_SHELL")}
 
 	path := *configPath
 	if path == "" {

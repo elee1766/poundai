@@ -1,8 +1,9 @@
 # zsh_poundai configuration.
 # Copy to ~/.config/zsh_poundai.yaml (or $XDG_CONFIG_HOME/zsh_poundai.yaml).
 
-# Which service profile to use. Overridable per-shell with $ZSH_POUNDAI_SERVICE
-# or per-call with `zsh_poundai -service <name>`.
+# Which service profile to use. Overridable with $POUNDAI_SERVICE,
+# $ZSH_POUNDAI_SERVICE, or $BASH_POUNDAI_SERVICE; or per-call with
+# `zsh_poundai -service <name>`.
 service: lmstudio
 
 services:

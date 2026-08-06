@@ -1,4 +1,4 @@
-// Package complete builds prompts from the ZLE buffer and cleans up model
+// Package complete builds prompts from a shell editing buffer and cleans up model
 // output so it can be spliced back into the buffer at the cursor.
 package complete
 
@@ -9,12 +9,20 @@ import (
 	"github.com/elee1766/zsh_poundai/pkg/provider"
 )
 
-const shebang = "#!/bin/zsh\n\n"
+const zshShebang = "#!/bin/zsh\n\n"
 
 // Input is a parsed completion request.
 type Input struct {
-	Buffer string // full ZLE buffer
-	Cursor int    // cursor offset in bytes (matches zsh's $CURSOR)
+	Buffer string // full shell editing buffer
+	Cursor int    // cursor offset in bytes
+	Shell  string // shell dialect; defaults to zsh
+}
+
+func (in Input) shebang() string {
+	if in.Shell == "bash" {
+		return "#!/bin/bash\n\n"
+	}
+	return zshShebang
 }
 
 // Prefix returns the buffer text before the cursor.
@@ -38,10 +46,10 @@ func (in Input) LinePrefix() string {
 	return p
 }
 
-// UserMessage builds the user-role message sent to the model: a zsh shebang
+// UserMessage builds the user-role message sent to the model: a shell shebang
 // followed by the full buffer.
 func (in Input) UserMessage() string {
-	return shebang + in.Buffer
+	return in.shebang() + in.Buffer
 }
 
 // DefaultSystemPrompt is the built-in system prompt, used when neither
@@ -80,7 +88,7 @@ func Messages(system string, demos []prompt.Demo, in Input) []provider.Message {
 			comment = "# " + comment
 		}
 		msgs = append(msgs,
-			provider.Message{Role: "user", Content: shebang + comment},
+			provider.Message{Role: "user", Content: in.shebang() + comment},
 			provider.Message{Role: "assistant", Content: d.Command},
 		)
 	}
@@ -99,9 +107,11 @@ func Messages(system string, demos []prompt.Demo, in Input) []provider.Message {
 //     command lands on the next line
 func Clean(completion string, in Input) string {
 	completion = stripCodeFence(completion)
-	completion = strings.TrimPrefix(completion, shebang)
+	completion = strings.TrimPrefix(completion, in.shebang())
 	completion = strings.TrimPrefix(completion, "#!/bin/zsh\n")
 	completion = strings.TrimPrefix(completion, "#!/bin/zsh")
+	completion = strings.TrimPrefix(completion, "#!/bin/bash\n")
+	completion = strings.TrimPrefix(completion, "#!/bin/bash")
 
 	prefix := in.Prefix()
 	linePrefix := in.LinePrefix()
