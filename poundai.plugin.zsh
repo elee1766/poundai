@@ -21,13 +21,18 @@ typeset -g ZSH_POUNDAI_BIN="${ZSH_POUNDAI_BIN:-poundai}"
 
 # --- Syntax highlighting fix -------------------------------------------------
 # Enable interactive comments so "# ..." is a comment, not a command.
-# We set it immediately AND via a one-shot precmd hook so it takes effect
+# We set it immediately AND via a precmd hook so it takes effect
 # even if this plugin loads before zsh-syntax-highlighting or
-# fast-syntax-highlighting.
+# fast-syntax-highlighting, including deferred plugin-manager loads.
 setopt INTERACTIVE_COMMENTS
 
 _poundai_highlight_setup() {
     setopt INTERACTIVE_COMMENTS
+    # Fast Syntax Highlighting caches shell options when it loads. Refresh the
+    # cache in case it loaded before poundai enabled interactive comments.
+    if (( $+functions[-fast-highlight-fill-option-variables] )); then
+        -fast-highlight-fill-option-variables
+    fi
     # Style comments as grey for both major highlighting plugins.
     if (( $+ZSH_HIGHLIGHT_STYLES )); then
         ZSH_HIGHLIGHT_STYLES[comment]='fg=8'
@@ -38,9 +43,9 @@ _poundai_highlight_setup() {
             FAST_HIGHLIGHT_STYLES[${FAST_THEME_NAME}comment]='fg=8'
         fi
     fi
-    add-zsh-hook -d precmd _poundai_highlight_setup  # run once then remove
 }
 autoload -Uz add-zsh-hook
+_poundai_highlight_setup
 add-zsh-hook precmd _poundai_highlight_setup
 
 # --- Core --------------------------------------------------------------------

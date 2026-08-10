@@ -2,7 +2,9 @@
 
 poundai is a way to get llm-generated commands for any terminal, with your existing shell
 
-<video src="assets/demo-1.webm" controls title="poundai command completion demo"></video>
+so the idea is instead of waiting for long response from harness/pulling up web ui/copy pasting output, you can recall commands from a llm, without leaving the terminal you want to run the command.
+
+![poundai command completion demo](assets/demo-1.gif)
 
 ## setup guide
 
