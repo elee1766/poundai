@@ -6,12 +6,11 @@ so the idea is instead of waiting for long response from harness/pulling up web 
 
 ![poundai command completion demo](assets/demo-1.gif)
 
-## setup guide
+## setup
 
-### Install
+### install
 
-Download the latest release archive for your platform. For example, on Linux
-amd64:
+grab the latest release for your platform. this example is for linux amd64:
 
 ```sh
 curl -fLO https://github.com/elee1766/poundai/releases/latest/download/poundai-linux-amd64.tar.gz
@@ -22,13 +21,14 @@ install -Dm644 poundai-linux-amd64/poundai.plugin.bash "${XDG_DATA_HOME:-$HOME/.
 install -Dm644 poundai-linux-amd64/config.example.yaml "${XDG_CONFIG_HOME:-$HOME/.config}/poundai/config.yml"
 ```
 
-Release archives include the Zsh and Bash plugins and `config.example.yaml`.
-Available platform names are `linux-amd64`, `linux-arm64`, `darwin-amd64`, and
-`darwin-arm64`; substitute one of them in the URL and commands above.
-Releases use UTC CalVer tags (`YYYY.MM.DD`, with a numeric suffix when more than
-one release is made on the same day). Every push to `master` publishes a release
-after tests pass; the Release workflow can also be run manually. To build from
-source instead:
+the archive has the binary, both shell plugins, and an example config. replace
+`linux-amd64` with `linux-arm64`, `darwin-amd64`, or `darwin-arm64` if needed.
+
+releases use utc calver tags: `YYYY.MM.DD`, then `.1`, `.2`, and so on if there
+is more than one release that day. every tested push to `master` makes a release,
+and you can also run the release workflow manually.
+
+if you would rather build it yourself:
 
 ```sh
 make install
@@ -36,13 +36,13 @@ mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/poundai"
 cp config.example.yaml "${XDG_CONFIG_HOME:-$HOME/.config}/poundai/config.yml"
 ```
 
-Edit the copied configuration with your provider and model settings.
+then edit `config.yml` and tell poundai which provider and model to use.
 
-### Custom Context
+### custom context
 
-For context that cannot be expressed through `context.commands`, configure an
-executable hook. Poundai runs it for each completion from the current working
-directory and appends its stdout to the model context:
+poundai can run an executable hook when `context.commands` is not enough. it
+runs from your current directory on every completion, and whatever it prints is
+added to the llm context:
 
 ```sh
 mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/poundai"
@@ -53,56 +53,58 @@ EOF
 chmod +x "${XDG_CONFIG_HOME:-$HOME/.config}/poundai/context"
 ```
 
-Then add its path to `config.yml`:
+then point at it from `config.yml`:
 
 ```yaml
 context:
   hook: context
 ```
 
-Relative hook paths are resolved from the directory containing `config.yml`;
-environment variables and a leading `~` are also expanded. Failures and empty
-output are ignored; execution is limited to two seconds and 4 KiB of stdout.
-`-no-context` disables the hook along with built-in context.
+relative paths start from the directory containing `config.yml`. environment
+variables and a leading `~` work too. poundai ignores failures and empty output,
+and cuts the hook off after two seconds or 4 KiB of output. `-no-context` skips
+the hook and all built-in context.
 
-### Zsh
+### zsh
 
-Source the plugin from `~/.zshrc`:
+add this to `~/.zshrc`:
 
 ```zsh
 source "${XDG_DATA_HOME:-$HOME/.local/share}/poundai/poundai.plugin.zsh"
 ```
 
-Type `# <prompt>` and press Enter. The comment is saved to history and the
-generated command appears at the next prompt for review. For mid-line
-completion, bind `create_poundai_completion` to a key:
+type `# <prompt>` and press enter. poundai keeps the comment in your history and
+puts the generated command at the next prompt so you can check it before running
+it.
 
-this is the recommended way to use poundai.
+you can also bind `create_poundai_completion` to a key and use it anywhere in a
+command. this is the recommended way to use poundai:
 
 ```zsh
 bindkey '^X' create_poundai_completion
 ```
 
-### Bash
+### bash
 
-a bash plugin exists, but i strongly recommend using zsh. there is no nice way to override the enter key in bash.
+a bash plugin exists, but i strongly recommend zsh. bash does not give us a nice
+way to take over the enter key.
 
-source the plugin from `~/.bashrc`:
+add this to `~/.bashrc`:
 
 ```bash
 source "${XDG_DATA_HOME:-$HOME/.local/share}/poundai/poundai.plugin.bash"
 ```
 
-Type a partial command or `# <prompt>`, then press Ctrl-X Ctrl-A. The generated
-text is inserted at the cursor. For a comment prompt it is placed on the next
-line; review it and press Enter to execute it.
+type a partial command or `# <prompt>`, then press ctrl-x ctrl-a. poundai inserts
+the result at your cursor. comment prompts put it on the next line so you can
+check it before pressing enter.
 
-To choose another binding, add this after sourcing the plugin:
+if you want another binding, add it after sourcing the plugin:
 
 ```bash
 bind -x '"\C-g":create_poundai_completion'
 ```
 
-Shell-specific overrides are available through `ZSH_POUNDAI_BIN`,
-`ZSH_POUNDAI_SERVICE`, and `ZSH_POUNDAI_CONFIG`, or their `BASH_POUNDAI_*`
-equivalents.
+you can override the binary, service, or config for one shell with
+`ZSH_POUNDAI_BIN`, `ZSH_POUNDAI_SERVICE`, and `ZSH_POUNDAI_CONFIG`. bash has the
+same variables under `BASH_POUNDAI_*`.

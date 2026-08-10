@@ -59,6 +59,9 @@ jobs:
           go-version-file: go.mod
           cache: true
 
+      - name: Install Zsh
+        run: sudo apt-get update && sudo apt-get install --yes zsh
+
       - name: Test
         run: make test
 
