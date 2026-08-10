@@ -38,6 +38,10 @@ cp config.example.yaml "${XDG_CONFIG_HOME:-$HOME/.config}/poundai/config.yml"
 
 then edit `config.yml` and tell poundai which provider and model to use.
 
+### model selection
+
+we support many models, but for a speed/performance balance, i find that gpt-oss-120b and 20b from groq perform very well.
+
 ### custom context
 
 poundai can run an executable hook when `context.commands` is not enough. it
