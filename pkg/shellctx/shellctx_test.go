@@ -4,11 +4,24 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
 	"github.com/elee1766/poundai/pkg/config"
 )
+
+func TestFormatOSInfo(t *testing.T) {
+	got := formatOSInfo("ubuntu", "24.04", "6.8.0")
+	want := runtime.GOOS + "/" + runtime.GOARCH + ", ubuntu 24.04, kernel 6.8.0"
+	if got != want {
+		t.Errorf("formatOSInfo() = %q, want %q", got, want)
+	}
+
+	if got := formatOSInfo("", "", ""); got != runtime.GOOS+"/"+runtime.GOARCH {
+		t.Errorf("formatOSInfo() fallback = %q", got)
+	}
+}
 
 func TestParseZshHistory(t *testing.T) {
 	content := ": 1700000000:0;ls -la\n" +

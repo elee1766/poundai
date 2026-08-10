@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/elee1766/poundai/pkg/config"
+	"github.com/shirou/gopsutil/v4/host"
 )
 
 const (
@@ -86,16 +87,20 @@ func Render(sections []Section) string {
 }
 
 func osInfo() string {
-	info := runtime.GOOS + "/" + runtime.GOARCH
-	if data, err := os.ReadFile("/etc/os-release"); err == nil {
-		for _, line := range strings.Split(string(data), "\n") {
-			if name, ok := strings.CutPrefix(line, "PRETTY_NAME="); ok {
-				info += ", " + strings.Trim(name, `"`)
-				break
-			}
-		}
+	platform, _, version, _ := host.PlatformInformation()
+	kernel, _ := host.KernelVersion()
+	return formatOSInfo(platform, version, kernel)
+}
+
+func formatOSInfo(platform, version, kernel string) string {
+	parts := []string{runtime.GOOS + "/" + runtime.GOARCH}
+	if platform = strings.TrimSpace(platform + " " + version); platform != "" {
+		parts = append(parts, platform)
 	}
-	return info
+	if kernel = strings.TrimSpace(kernel); kernel != "" {
+		parts = append(parts, "kernel "+kernel)
+	}
+	return strings.Join(parts, ", ")
 }
 
 // recentHistory returns the last n commands from the zsh history file.
