@@ -132,6 +132,9 @@ elif [ "${POUNDAI_YES:-0}" = 1 ]; then
 elif [ -t 0 ]; then
     printf 'poundai: add the %s plugin to %s? [y/N] ' "$shell_name" "$rc_file"
     read -r answer || answer=no
+elif [ -t 1 ] && [ -r /dev/tty ]; then
+    printf 'poundai: add the %s plugin to %s? [y/N] ' "$shell_name" "$rc_file" > /dev/tty
+    read -r answer < /dev/tty || answer=no
 else
     answer=no
 fi

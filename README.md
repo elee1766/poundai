@@ -15,9 +15,7 @@ checks the download, and installs or updates the binary. it also detects zsh or
 bash and asks before touching your shell config:
 
 ```sh
-installer=$(mktemp)
-curl -fsSL https://github.com/elee1766/poundai/releases/latest/download/install.sh -o "$installer" && sh "$installer"
-rm -f "$installer"
+curl -fsSL https://github.com/elee1766/poundai/releases/latest/download/install.sh | sh
 ```
 
 set `POUNDAI_INSTALL_DIR` to install somewhere other than `~/.local/bin`, or
