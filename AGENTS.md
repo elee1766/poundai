@@ -8,8 +8,8 @@ A zsh plugin (Go binary) that completes shell commands via LLM. The user types a
 
 ```
 cmd/poundai/         # thin main: just calls pkg/cli.Run()
-  poundai.plugin.zsh       # zsh widget that pipes $BUFFER/$CURSOR into the Go binary
-  poundai.plugin.bash      # bash Readline binding using $READLINE_LINE/$READLINE_POINT
+poundai.plugin.zsh   # embedded zsh widget that pipes $BUFFER/$CURSOR into the Go binary
+poundai.plugin.bash  # embedded bash Readline binding using $READLINE_LINE/$READLINE_POINT
 pkg/
   cli/                   # CLI entrypoint logic: flag parsing, config loading, orchestration
   config/                # YAML config loader ($XDG_CONFIG_HOME/poundai/config.yml)

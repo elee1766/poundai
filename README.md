@@ -10,19 +10,21 @@ so the idea is instead of waiting for long response from harness/pulling up web 
 
 ### install
 
-grab the latest release for your platform. this example is for linux amd64:
+the installer finds the latest release, compares it with what you already have,
+checks the download, and installs or updates the binary. it also detects zsh or
+bash and asks before touching your shell config:
 
 ```sh
-curl -fLO https://github.com/elee1766/poundai/releases/latest/download/poundai-linux-amd64.tar.gz
-tar -xzf poundai-linux-amd64.tar.gz
-install -Dm755 poundai-linux-amd64/poundai "$HOME/.local/bin/poundai"
-install -Dm644 poundai-linux-amd64/poundai.plugin.zsh "${XDG_DATA_HOME:-$HOME/.local/share}/poundai/poundai.plugin.zsh"
-install -Dm644 poundai-linux-amd64/poundai.plugin.bash "${XDG_DATA_HOME:-$HOME/.local/share}/poundai/poundai.plugin.bash"
-install -Dm644 poundai-linux-amd64/config.example.yaml "${XDG_CONFIG_HOME:-$HOME/.config}/poundai/config.yml"
+installer=$(mktemp)
+curl -fsSL https://github.com/elee1766/poundai/releases/latest/download/install.sh -o "$installer" && sh "$installer"
+rm -f "$installer"
 ```
 
-the archive has the binary, both shell plugins, and an example config. replace
-`linux-amd64` with `linux-arm64`, `darwin-amd64`, or `darwin-arm64` if needed.
+set `POUNDAI_INSTALL_DIR` to install somewhere other than `~/.local/bin`, or
+`POUNDAI_NO_MODIFY_RC=1` to leave shell config alone. releases contain one
+standalone binary for linux or macos on amd64 or arm64. both plugins are bundled
+into that binary. on the first install, the script also puts the example config
+at `${XDG_CONFIG_HOME:-$HOME/.config}/poundai/config.yml` for you to edit.
 
 releases use utc calver tags: `YYYY.MM.DD`, then `.1`, `.2`, and so on if there
 is more than one release that day. every tested push to `master` makes a release,
@@ -74,7 +76,7 @@ the hook and all built-in context.
 add this to `~/.zshrc`:
 
 ```zsh
-source "${XDG_DATA_HOME:-$HOME/.local/share}/poundai/poundai.plugin.zsh"
+source <(poundai plugin zsh)
 ```
 
 type `# <prompt>` and press enter. poundai keeps the comment in your history and
@@ -96,7 +98,7 @@ way to take over the enter key.
 add this to `~/.bashrc`:
 
 ```bash
-source "${XDG_DATA_HOME:-$HOME/.local/share}/poundai/poundai.plugin.bash"
+source <(poundai plugin bash)
 ```
 
 type a partial command or `# <prompt>`, then press ctrl-x ctrl-a. poundai inserts

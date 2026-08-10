@@ -1,6 +1,6 @@
 # poundai: AI command completion for Bash.
 #
-# Source this file from ~/.bashrc, then type a partial command or
+# Add `source <(poundai plugin bash)` to ~/.bashrc, then type a partial command or
 # "# describe what you want" and press Ctrl-X Ctrl-A. The generated text is
 # inserted at the cursor for review before execution.
 

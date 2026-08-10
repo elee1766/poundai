@@ -54,7 +54,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache: true
@@ -83,7 +83,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache: true
@@ -96,18 +96,16 @@ jobs:
           CGO_ENABLED: "0"
           VERSION: ${{ needs.version.outputs.version }}
         run: |
-          package="poundai-${GOOS}-${GOARCH}"
-          mkdir -p "dist/$package"
+          asset="poundai-${GOOS}-${GOARCH}"
+          mkdir -p dist
           go build -trimpath \
             -ldflags "-s -w -X github.com/elee1766/poundai/pkg/cli.Version=${VERSION}" \
-            -o "dist/$package/poundai" ./cmd/poundai
-          cp poundai.plugin.zsh poundai.plugin.bash config.example.yaml "dist/$package/"
-          tar -C dist -czf "dist/$package.tar.gz" "$package"
+            -o "dist/$asset" ./cmd/poundai
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: poundai-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: dist/*.tar.gz
+          path: dist/poundai-${{ matrix.goos }}-${{ matrix.goarch }}
           if-no-files-found: error
 
   release:
@@ -128,20 +126,20 @@ jobs:
           path: dist
           merge-multiple: true
 
-      - name: Package plugins and checksums
+      - name: Create checksums
         shell: bash
         run: |
-          mkdir -p dist/poundai-plugins
-          cp poundai.plugin.zsh poundai.plugin.bash dist/poundai-plugins/
-          tar -C dist -czf dist/poundai-plugins.tar.gz poundai-plugins
-          rm -rf dist/poundai-plugins
+          cp config.example.yaml dist/config.example.yaml
+          cp install.sh dist/install.sh
           cd dist
-          sha256sum ./*.tar.gz > checksums.txt
+          sha256sum ./poundai-* ./config.example.yaml ./install.sh > checksums.txt
 
       - name: Attest release artifacts
         uses: actions/attest-build-provenance@v3
         with:
-          subject-path: dist/*.tar.gz
+          subject-path: |
+            dist/poundai-*
+            dist/install.sh
 
       - name: Publish release
         env:
@@ -149,7 +147,7 @@ jobs:
           VERSION: ${{ needs.version.outputs.version }}
         run: >-
           gh release create "$VERSION"
-          dist/*.tar.gz dist/checksums.txt
+          dist/poundai-* dist/config.example.yaml dist/install.sh dist/checksums.txt
           --target "$GITHUB_SHA"
           --title "poundai $VERSION"
           --generate-notes

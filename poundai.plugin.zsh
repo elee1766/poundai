@@ -2,7 +2,7 @@
 #
 # Installation:
 #   1. Build/install the binary:  make install  (or go install ./cmd/poundai)
-#   2. Source this file from your .zshrc (or install as an oh-my-zsh plugin)
+#   2. Add `source <(poundai plugin zsh)` to your .zshrc
 #
 # Usage:
 #   Type "# describe what you want" and press Enter. The comment is preserved

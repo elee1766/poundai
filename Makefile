@@ -10,7 +10,10 @@ build:
 
 test:
 	go test ./...
+	zsh -n poundai.plugin.zsh
+	bash -n poundai.plugin.bash
 	bash tests/bash_plugin_test.bash
+	sh tests/install_test.sh
 
 install: build
 	install -d $(BINDIR)

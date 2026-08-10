@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -11,6 +12,35 @@ import (
 	"strings"
 	"testing"
 )
+
+func TestPluginCommand(t *testing.T) {
+	tmp := t.TempDir()
+	bin := filepath.Join(tmp, "poundai")
+	build := exec.Command("go", "build", "-o", bin, ".")
+	build.Env = os.Environ()
+	if out, err := build.CombinedOutput(); err != nil {
+		t.Fatalf("build failed: %v\n%s", err, out)
+	}
+
+	for _, shell := range []string{"zsh", "bash"} {
+		want, err := os.ReadFile(filepath.Join("..", "..", "poundai.plugin."+shell))
+		if err != nil {
+			t.Fatal(err)
+		}
+		got, err := exec.Command(bin, "plugin", shell).Output()
+		if err != nil {
+			t.Fatalf("poundai plugin %s: %v", shell, err)
+		}
+		if !bytes.Equal(got, want) {
+			t.Errorf("poundai plugin %s output differs from source file", shell)
+		}
+	}
+
+	out, err := exec.Command(bin, "plugin", "fish").CombinedOutput()
+	if err == nil || !strings.Contains(string(out), "unsupported shell") {
+		t.Errorf("poundai plugin fish = err %v, output %q", err, out)
+	}
+}
 
 // TestEndToEnd builds the binary and runs it against a mock OpenAI-compatible
 // server, exercising config loading, context injection, and cleanup.

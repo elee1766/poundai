@@ -17,6 +17,7 @@ import (
 	"strings"
 	"syscall"
 
+	poundai "github.com/elee1766/poundai"
 	"github.com/elee1766/poundai/pkg/complete"
 	"github.com/elee1766/poundai/pkg/config"
 	"github.com/elee1766/poundai/pkg/prompt"
@@ -49,10 +50,22 @@ func Run() error {
 		showVersion = flag.Bool("version", false, "print version and exit")
 	)
 	flag.Usage = func() {
-		fmt.Fprintf(flag.CommandLine.Output(), "usage: poundai [flags] <cursor>\n\nreads the shell editing buffer on stdin; prints the completion on stdout\n\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "usage: poundai [flags] <cursor>\n       poundai plugin <zsh|bash>\n\nreads the shell editing buffer on stdin; prints the completion on stdout\n\n")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
+
+	if flag.NArg() > 0 && flag.Arg(0) == "plugin" {
+		if flag.NArg() != 2 {
+			return fmt.Errorf("usage: poundai plugin <zsh|bash>")
+		}
+		source, err := poundai.Plugin(flag.Arg(1))
+		if err != nil {
+			return err
+		}
+		_, err = io.WriteString(os.Stdout, source)
+		return err
+	}
 
 	if *showVersion {
 		fmt.Println("poundai", Version)
