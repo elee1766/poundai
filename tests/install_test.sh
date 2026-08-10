@@ -41,6 +41,7 @@ printf '%s  ./%s\n%s  ./config.example.yaml\n' \
     "$binary_checksum" "$asset" "$config_checksum" > "$release_dir/checksums.txt"
 
 HOME="$tmp/home" \
+XDG_CONFIG_HOME="$tmp/home/.config" \
 SHELL=/bin/zsh \
 POUNDAI_VERSION="$version" \
 POUNDAI_BASE_URL="file://$tmp/releases" \
@@ -54,6 +55,7 @@ got=$("$install_dir/poundai" -version)
 [ ! -e "$tmp/home/.zshrc" ]
 
 output=$(HOME="$tmp/home" \
+    XDG_CONFIG_HOME="$tmp/home/.config" \
     SHELL=/bin/zsh \
     POUNDAI_VERSION="$version" \
     POUNDAI_BASE_URL="file://$tmp/releases" \
@@ -66,6 +68,7 @@ case $output in
 esac
 
 HOME="$tmp/home" \
+XDG_CONFIG_HOME="$tmp/home/.config" \
 SHELL=/bin/zsh \
 POUNDAI_VERSION="$version" \
 POUNDAI_BASE_URL="file://$tmp/releases" \
@@ -76,6 +79,7 @@ POUNDAI_YES=1 \
 grep -F 'source <(poundai plugin zsh)' "$tmp/home/.zshrc" >/dev/null
 
 HOME="$tmp/home" \
+XDG_CONFIG_HOME="$tmp/home/.config" \
 SHELL=/bin/zsh \
 POUNDAI_VERSION="$version" \
 POUNDAI_BASE_URL="file://$tmp/releases" \
@@ -87,6 +91,7 @@ POUNDAI_YES=1 \
 
 printf 'tampered\n' >> "$release_dir/$asset"
 if HOME="$tmp/bad-home" \
+    XDG_CONFIG_HOME="$tmp/bad-home/.config" \
     SHELL=/bin/zsh \
     POUNDAI_VERSION="$version" \
     POUNDAI_BASE_URL="file://$tmp/releases" \
