@@ -3,7 +3,7 @@ package complete
 import (
 	"testing"
 
-	"github.com/elee1766/zsh_poundai/pkg/prompt"
+	"github.com/elee1766/poundai/pkg/prompt"
 )
 
 func TestClean(t *testing.T) {

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elee1766/zsh_poundai/pkg/config"
+	"github.com/elee1766/poundai/pkg/config"
 )
 
 // DefaultTimeout is used when a service does not configure one.

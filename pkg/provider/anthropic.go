@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/elee1766/zsh_poundai/pkg/config"
+	"github.com/elee1766/poundai/pkg/config"
 )
 
 const anthropicVersion = "2023-06-01"

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/elee1766/zsh_poundai/pkg/config"
+	"github.com/elee1766/poundai/pkg/config"
 )
 
 // ollama speaks Ollama's native /api/chat endpoint. No API key required.

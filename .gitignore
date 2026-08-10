@@ -1,4 +1,4 @@
 # build artifacts
-/zsh_poundai
+/poundai
 /dist/
 *.test

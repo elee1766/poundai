@@ -2,7 +2,7 @@
 set -euo pipefail
 
 repo_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
-source "$repo_root/bash_poundai.plugin.bash"
+source "$repo_root/poundai.plugin.bash"
 
 fake_poundai() {
     local input

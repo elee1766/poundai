@@ -5,8 +5,8 @@ package complete
 import (
 	"strings"
 
-	"github.com/elee1766/zsh_poundai/pkg/prompt"
-	"github.com/elee1766/zsh_poundai/pkg/provider"
+	"github.com/elee1766/poundai/pkg/prompt"
+	"github.com/elee1766/poundai/pkg/provider"
 )
 
 const zshShebang = "#!/bin/zsh\n\n"

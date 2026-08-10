@@ -5,11 +5,13 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/adrg/xdg"
 )
 
 func writeConfig(t *testing.T, content string) string {
 	t.Helper()
-	path := filepath.Join(t.TempDir(), "zsh_poundai.yaml")
+	path := filepath.Join(t.TempDir(), "config.yml")
 	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -39,6 +41,7 @@ context:
   os: true
   history: 10
   env: [VIRTUAL_ENV]
+  hook: context
   commands:
     - name: git
       command: git status -sb
@@ -68,6 +71,9 @@ context:
 	if !cfg.Context.Cwd || cfg.Context.History != 10 {
 		t.Errorf("context = %+v", cfg.Context)
 	}
+	if cfg.Context.Hook != filepath.Join(filepath.Dir(path), "context") {
+		t.Errorf("hook = %q", cfg.Context.Hook)
+	}
 	if len(cfg.Context.Commands) != 1 || cfg.Context.Commands[0].Timeout.Std(0) != 500*time.Millisecond {
 		t.Errorf("commands = %+v", cfg.Context.Commands)
 	}
@@ -79,6 +85,19 @@ context:
 	}
 	if svc.Provider != "openai" {
 		t.Errorf("override service = %+v", svc)
+	}
+}
+
+func TestDefaultPath(t *testing.T) {
+	oldHome, oldDirs := xdg.ConfigHome, xdg.ConfigDirs
+	xdg.ConfigHome, xdg.ConfigDirs = t.TempDir(), nil
+	t.Cleanup(func() {
+		xdg.ConfigHome, xdg.ConfigDirs = oldHome, oldDirs
+	})
+
+	want := filepath.Join(xdg.ConfigHome, "poundai", "config.yml")
+	if got := DefaultPath(); got != want {
+		t.Errorf("DefaultPath() = %q, want %q", got, want)
 	}
 }
 

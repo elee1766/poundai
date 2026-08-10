@@ -1,4 +1,4 @@
-# zsh_poundai
+# poundai
 
 AI command generation for Zsh and Bash. A fast provider and a capable coding
 model such as `gpt-oss-20b` are recommended.
@@ -7,17 +7,45 @@ model such as `gpt-oss-20b` are recommended.
 
 ```sh
 make install
-cp config.example.yaml ~/.config/zsh_poundai.yaml
+mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/poundai"
+cp config.example.yaml "${XDG_CONFIG_HOME:-$HOME/.config}/poundai/config.yml"
 ```
 
 Edit the copied configuration with your provider and model settings.
+
+## Custom Context
+
+For context that cannot be expressed through `context.commands`, configure an
+executable hook. Poundai runs it for each completion from the current working
+directory and appends its stdout to the model context:
+
+```sh
+mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/poundai"
+cat > "${XDG_CONFIG_HOME:-$HOME/.config}/poundai/context" <<'EOF'
+#!/bin/sh
+printf 'active project: %s\n' "${PROJECT_NAME:-unknown}"
+EOF
+chmod +x "${XDG_CONFIG_HOME:-$HOME/.config}/poundai/context"
+```
+
+Then add its path to `config.yml`:
+
+```yaml
+context:
+  hook: context
+```
+
+Relative hook paths are resolved from the directory containing `config.yml`;
+environment variables and a leading `~` are also expanded. Failures and empty
+output are ignored; execution is limited to two seconds and 4 KiB of stdout.
+`-no-context` disables the hook along with built-in context.
 
 ## Zsh
 
 Source the plugin from `~/.zshrc`:
 
 ```zsh
-source /path/to/zsh_poundai/zsh_poundai.plugin.zsh
+source /path/to/poundai/poundai.plugin.zsh
 ```
 
 Type `# <prompt>` and press Enter. The comment is saved to history and the
@@ -33,7 +61,7 @@ bindkey '^X' create_poundai_completion
 Source the plugin from `~/.bashrc`:
 
 ```bash
-source /path/to/zsh_poundai/bash_poundai.plugin.bash
+source /path/to/poundai/poundai.plugin.bash
 ```
 
 Type a partial command or `# <prompt>`, then press Ctrl-X Ctrl-A. The generated

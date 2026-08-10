@@ -1,9 +1,9 @@
-# zsh_poundai configuration.
-# Copy to ~/.config/zsh_poundai.yaml (or $XDG_CONFIG_HOME/zsh_poundai.yaml).
+# poundai configuration.
+# Copy to ~/.config/poundai/config.yml (or $XDG_CONFIG_HOME/poundai/config.yml).
 
 # Which service profile to use. Overridable with $POUNDAI_SERVICE,
 # $ZSH_POUNDAI_SERVICE, or $BASH_POUNDAI_SERVICE; or per-call with
-# `zsh_poundai -service <name>`.
+# `poundai -service <name>`.
 service: lmstudio
 
 services:
@@ -75,7 +75,7 @@ prompt:
   # system: ""                        # fully replace the built-in system prompt
   system_extra: ""                    # appended to the system prompt, e.g.
                                       # "Prefer long flags. This machine runs NixOS."
-  # optimized_file: ~/.config/zsh_poundai_prompt.json
+  # optimized_file: ~/.config/poundai/prompt.json
   #                                   # DSPy-optimized system prompt + few-shot
   #                                   # demos; format: {"system": "...", "demos": [...]}
 
@@ -85,6 +85,7 @@ context:
   os: true           # OS/arch + distro pretty-name
   history: 10        # last N commands from $HISTFILE (0 = off)
   env: []            # env var names to include, e.g. [VIRTUAL_ENV, KUBECONFIG]
+  # hook: context     # executable path, relative to this file (2s / 4 KiB limit)
   commands:          # arbitrary commands whose output is injected
     - name: git
       command: git status -sb 2>/dev/null

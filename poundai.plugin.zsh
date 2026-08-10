@@ -1,7 +1,7 @@
-# zsh_poundai: AI command completion for zsh.
+# poundai: AI command completion for zsh.
 #
 # Installation:
-#   1. Build/install the binary:  make install  (or go install ./cmd/zsh_poundai)
+#   1. Build/install the binary:  make install  (or go install ./cmd/poundai)
 #   2. Source this file from your .zshrc (or install as an oh-my-zsh plugin)
 #
 # Usage:
@@ -10,14 +10,14 @@
 #   You can also bind create_poundai_completion to a key for mid-line completion:
 #     bindkey '^X' create_poundai_completion
 #
-# Configuration lives in $XDG_CONFIG_HOME/zsh_poundai.yaml (see config.example.yaml).
+# Configuration lives in $XDG_CONFIG_HOME/poundai/config.yml (see config.example.yaml).
 #
 # Environment overrides:
-#   ZSH_POUNDAI_BIN      path to the zsh_poundai binary (default: zsh_poundai on $PATH)
+#   ZSH_POUNDAI_BIN      path to the poundai binary (default: poundai on $PATH)
 #   ZSH_POUNDAI_SERVICE  service profile to use for this shell
 #   ZSH_POUNDAI_CONFIG   alternate config file path
 
-typeset -g ZSH_POUNDAI_BIN="${ZSH_POUNDAI_BIN:-zsh_poundai}"
+typeset -g ZSH_POUNDAI_BIN="${ZSH_POUNDAI_BIN:-poundai}"
 
 # --- Syntax highlighting fix -------------------------------------------------
 # Enable interactive comments so "# ..." is a comment, not a command.
@@ -30,10 +30,13 @@ _poundai_highlight_setup() {
     setopt INTERACTIVE_COMMENTS
     # Style comments as grey for both major highlighting plugins.
     if (( $+ZSH_HIGHLIGHT_STYLES )); then
-        ZSH_HIGHLIGHT_STYLES[comment]="${ZSH_HIGHLIGHT_STYLES[comment]:-fg=8}"
+        ZSH_HIGHLIGHT_STYLES[comment]='fg=8'
     fi
     if (( $+FAST_HIGHLIGHT_STYLES )); then
-        FAST_HIGHLIGHT_STYLES[comment]="${FAST_HIGHLIGHT_STYLES[comment]:-fg=8}"
+        FAST_HIGHLIGHT_STYLES[comment]='fg=8'
+        if [[ -n ${FAST_THEME_NAME:-} ]]; then
+            FAST_HIGHLIGHT_STYLES[${FAST_THEME_NAME}comment]='fg=8'
+        fi
     fi
     add-zsh-hook -d precmd _poundai_highlight_setup  # run once then remove
 }
@@ -49,7 +52,7 @@ _poundai_generate() {
     local text=$1 cursor=$2 errfile
     local service=${ZSH_POUNDAI_SERVICE:-${POUNDAI_SERVICE:-}}
     local config=${ZSH_POUNDAI_CONFIG:-${POUNDAI_CONFIG:-}}
-    errfile=$(mktemp "${TMPDIR:-/tmp}/zsh_poundai.XXXXXX") || return 1
+    errfile=$(mktemp "${TMPDIR:-/tmp}/poundai.XXXXXX") || return 1
 
     REPLY=$(printf '%s' "$text" | \
         POUNDAI_HISTFILE="$HISTFILE" \
@@ -60,7 +63,7 @@ _poundai_generate() {
     local rc=$?
 
     if (( rc != 0 )); then
-        print -u2 "zsh_poundai: $(tail -n 1 "$errfile" 2>/dev/null)"
+        print -u2 "poundai: $(tail -n 1 "$errfile" 2>/dev/null)"
         rm -f "$errfile"
         return 1
     fi
@@ -81,7 +84,7 @@ _poundai_accept_line() {
         zle .accept-line
 
         # Show a thinking indicator on its own line.
-        print "\nzsh_poundai: thinking..."
+        print "\npoundai: thinking..."
 
         # Generate the command (runs outside ZLE context now).
         if _poundai_generate "$comment" "$cursor"; then
@@ -106,11 +109,11 @@ zle -N accept-line _poundai_accept_line
 # Manual completion widget: splice at cursor position (for mid-line use).
 # Bind with: bindkey '^X' create_poundai_completion
 create_poundai_completion() {
-    zle -M "zsh_poundai: thinking..."
+    zle -M "poundai: thinking..."
     zle -R
 
     if ! _poundai_generate "$BUFFER" "$CURSOR"; then
-        zle -M "zsh_poundai: generation failed"
+        zle -M "poundai: generation failed"
         return 1
     fi
     zle -M ""

@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime"
 	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime/types"
 
-	"github.com/elee1766/zsh_poundai/pkg/config"
+	"github.com/elee1766/poundai/pkg/config"
 )
 
 // bedrock invokes models via Amazon Bedrock's Converse API, which works

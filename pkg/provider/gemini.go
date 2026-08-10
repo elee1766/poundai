@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/elee1766/zsh_poundai/pkg/config"
+	"github.com/elee1766/poundai/pkg/config"
 )
 
 // gemini speaks the Google Generative Language REST API.

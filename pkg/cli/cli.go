@@ -1,4 +1,4 @@
-// Package cli implements the zsh_poundai command-line interface.
+// Package cli implements the poundai command-line interface.
 //
 // It reads the shell editing buffer on stdin, a cursor offset as a positional argument,
 // asks the configured LLM to complete the command, and prints the result to
@@ -17,11 +17,11 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/elee1766/zsh_poundai/pkg/complete"
-	"github.com/elee1766/zsh_poundai/pkg/config"
-	"github.com/elee1766/zsh_poundai/pkg/prompt"
-	"github.com/elee1766/zsh_poundai/pkg/provider"
-	"github.com/elee1766/zsh_poundai/pkg/shellctx"
+	"github.com/elee1766/poundai/pkg/complete"
+	"github.com/elee1766/poundai/pkg/config"
+	"github.com/elee1766/poundai/pkg/prompt"
+	"github.com/elee1766/poundai/pkg/provider"
+	"github.com/elee1766/poundai/pkg/shellctx"
 )
 
 // Version is set at build time via -ldflags "-X ...pkg/cli.Version=...".
@@ -42,20 +42,20 @@ func ExpandPath(path string) string {
 // config, calls the LLM, and prints the cleaned completion to stdout.
 func Run() error {
 	var (
-		configPath  = flag.String("config", "", "path to config file (default: $XDG_CONFIG_HOME/zsh_poundai.yaml)")
+		configPath  = flag.String("config", "", "path to config file (default: $XDG_CONFIG_HOME/poundai/config.yml)")
 		service     = flag.String("service", "", "service profile to use (overrides config selector; also settable via $POUNDAI_SERVICE)")
 		noContext   = flag.Bool("no-context", false, "skip context gathering")
 		debug       = flag.Bool("debug", false, "print the prompt and raw completion to stderr")
 		showVersion = flag.Bool("version", false, "print version and exit")
 	)
 	flag.Usage = func() {
-		fmt.Fprintf(flag.CommandLine.Output(), "usage: zsh_poundai [flags] <cursor>\n\nreads the shell editing buffer on stdin; prints the completion on stdout\n\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "usage: poundai [flags] <cursor>\n\nreads the shell editing buffer on stdin; prints the completion on stdout\n\n")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
 
 	if *showVersion {
-		fmt.Println("zsh_poundai", Version)
+		fmt.Println("poundai", Version)
 		return nil
 	}
 

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/elee1766/zsh_poundai/pkg/config"
+	"github.com/elee1766/poundai/pkg/config"
 )
 
 func TestParseZshHistory(t *testing.T) {
@@ -105,5 +105,32 @@ func TestCommandTimeout(t *testing.T) {
 	})
 	if len(sections) != 0 {
 		t.Errorf("timed-out command should produce no section, got %+v", sections)
+	}
+}
+
+func TestContextHook(t *testing.T) {
+	hookPath := filepath.Join(t.TempDir(), "context")
+	if err := os.WriteFile(hookPath, []byte("#!/bin/sh\nprintf 'project=%s' \"$POUNDAI_HOOK_TEST\"\n"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("POUNDAI_HOOK_TEST", "custom")
+
+	sections := Gather(context.Background(), config.Context{Hook: hookPath})
+	if len(sections) != 1 {
+		t.Fatalf("got %d sections, want 1: %+v", len(sections), sections)
+	}
+	if sections[0].Name != "custom context" || sections[0].Body != "project=custom" {
+		t.Errorf("hook section = %+v", sections[0])
+	}
+}
+
+func TestContextHookFailureIsSkipped(t *testing.T) {
+	hookPath := filepath.Join(t.TempDir(), "context")
+	if err := os.WriteFile(hookPath, []byte("#!/bin/sh\nexit 1\n"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+
+	if sections := Gather(context.Background(), config.Context{Hook: hookPath}); len(sections) != 0 {
+		t.Errorf("failed hook should produce no section, got %+v", sections)
 	}
 }

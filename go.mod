@@ -1,4 +1,4 @@
-module github.com/elee1766/zsh_poundai
+module github.com/elee1766/poundai
 
 go 1.26.0
 

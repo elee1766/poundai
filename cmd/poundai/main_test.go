@@ -20,7 +20,7 @@ func TestEndToEnd(t *testing.T) {
 	}
 
 	tmp := t.TempDir()
-	bin := filepath.Join(tmp, "zsh_poundai")
+	bin := filepath.Join(tmp, "poundai")
 	build := exec.Command("go", "build", "-o", bin, ".")
 	build.Env = os.Environ()
 	if out, err := build.CombinedOutput(); err != nil {
@@ -133,7 +133,7 @@ func TestEndToEndDefaultPrompt(t *testing.T) {
 	}
 
 	tmp := t.TempDir()
-	bin := filepath.Join(tmp, "zsh_poundai")
+	bin := filepath.Join(tmp, "poundai")
 	build := exec.Command("go", "build", "-o", bin, ".")
 	build.Env = os.Environ()
 	if out, err := build.CombinedOutput(); err != nil {
