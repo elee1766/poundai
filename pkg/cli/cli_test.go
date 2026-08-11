@@ -70,6 +70,9 @@ func TestRunInitNonInteractive(t *testing.T) {
 	if !cfg.Context.Cwd || !cfg.Context.OS || cfg.Context.History != 10 {
 		t.Errorf("context = %+v", cfg.Context)
 	}
+	if len(cfg.Context.Commands) != 1 || cfg.Context.Commands[0].Name != "git" {
+		t.Errorf("commands = %+v", cfg.Context.Commands)
+	}
 	if !strings.Contains(out.String(), "poundai doctor") {
 		t.Errorf("output = %q", out.String())
 	}
@@ -154,6 +157,54 @@ func TestRunInitRejectsNegativeHistory(t *testing.T) {
 		io.Discard,
 	)
 	if err == nil || !strings.Contains(err.Error(), "history count must be non-negative") {
+		t.Fatalf("error = %v", err)
+	}
+}
+
+func TestRunInitConfiguresCommandPresets(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.yml")
+	if err := runInit(
+		[]string{"-config", path, "-non-interactive", "-commands", "git,files"},
+		strings.NewReader(""),
+		io.Discard,
+	); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := config.Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(cfg.Context.Commands) != 2 || cfg.Context.Commands[0].Name != "git" || cfg.Context.Commands[1].Name != "files" {
+		t.Errorf("commands = %+v", cfg.Context.Commands)
+	}
+}
+
+func TestRunInitDisablesCommandPresets(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.yml")
+	if err := runInit(
+		[]string{"-config", path, "-non-interactive", "-commands", "none"},
+		strings.NewReader(""),
+		io.Discard,
+	); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := config.Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(cfg.Context.Commands) != 0 {
+		t.Errorf("commands = %+v", cfg.Context.Commands)
+	}
+}
+
+func TestRunInitRejectsUnknownCommandPreset(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.yml")
+	err := runInit(
+		[]string{"-config", path, "-non-interactive", "-commands", "unknown"},
+		strings.NewReader(""),
+		io.Discard,
+	)
+	if err == nil || !strings.Contains(err.Error(), "unknown context command preset") {
 		t.Fatalf("error = %v", err)
 	}
 }

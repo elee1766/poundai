@@ -32,6 +32,9 @@ poundai init
 poundai doctor
 ```
 
+the wizard also configures recent history and optional `git` or `files` context
+commands. it includes 10 history entries and the `git` preset by default.
+
 use `poundai doctor -offline` to validate configuration and required credential
 variables without testing connectivity or credential validity.
 

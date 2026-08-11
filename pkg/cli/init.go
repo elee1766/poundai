@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	poundai "github.com/elee1766/poundai"
 	"github.com/elee1766/poundai/pkg/config"
@@ -26,6 +27,7 @@ type initOptions struct {
 	model          string
 	region         string
 	history        int
+	commands       string
 	force          bool
 	nonInteractive bool
 }
@@ -57,6 +59,7 @@ func runInit(args []string, stdin io.Reader, stdout io.Writer) error {
 	fs.StringVar(&opts.model, "model", "", "model name")
 	fs.StringVar(&opts.region, "region", "", "AWS region for Bedrock")
 	fs.IntVar(&opts.history, "history", 10, "number of recent history entries to include (0 disables history)")
+	fs.StringVar(&opts.commands, "commands", "git", "context command presets to include: git, files, or none")
 	fs.BoolVar(&opts.force, "force", false, "replace an existing config without confirmation")
 	fs.BoolVar(&opts.nonInteractive, "non-interactive", false, "use flags and defaults without prompting")
 	if err := fs.Parse(args); err != nil {
@@ -69,9 +72,13 @@ func runInit(args []string, stdin io.Reader, stdout io.Writer) error {
 		return fmt.Errorf("init: unexpected arguments: %s", strings.Join(fs.Args(), " "))
 	}
 	historySet := false
+	commandsSet := false
 	fs.Visit(func(f *flag.Flag) {
-		if f.Name == "history" {
+		switch f.Name {
+		case "history":
 			historySet = true
+		case "commands":
+			commandsSet = true
 		}
 	})
 
@@ -167,6 +174,17 @@ func runInit(args []string, stdin io.Reader, stdout io.Writer) error {
 	if opts.history < 0 {
 		return fmt.Errorf("history count must be non-negative")
 	}
+	if !opts.nonInteractive && !commandsSet {
+		value, err := ask(reader, stdout, "Context commands to include (git, files, or none; comma-separated)", "git")
+		if err != nil {
+			return err
+		}
+		opts.commands = value
+	}
+	contextCommands, err := commandPresets(opts.commands)
+	if err != nil {
+		return err
+	}
 
 	svc := config.Service{
 		Provider:  opts.provider,
@@ -178,7 +196,12 @@ func runInit(args []string, stdin io.Reader, stdout io.Writer) error {
 	cfg := config.Config{
 		Service:  opts.name,
 		Services: map[string]config.Service{opts.name: svc},
-		Context:  config.Context{Cwd: true, OS: true, History: opts.history},
+		Context: config.Context{
+			Cwd:      true,
+			OS:       true,
+			History:  opts.history,
+			Commands: contextCommands,
+		},
 	}
 	data, err := yaml.Marshal(cfg)
 	if err != nil {
@@ -253,4 +276,35 @@ func needsAPIKey(providerName, baseURL string) bool {
 
 func promptsForBaseURL(providerName string) bool {
 	return providerName == "ollama" || providerName == "openai"
+}
+
+func commandPresets(value string) ([]config.ContextCommand, error) {
+	presets := map[string]config.ContextCommand{
+		"git": {
+			Name:     "git",
+			Command:  "git status -sb 2>/dev/null",
+			Timeout:  config.Duration(500 * time.Millisecond),
+			MaxBytes: 2048,
+		},
+		"files": {
+			Name:     "files",
+			Command:  "find . -type f | head -50",
+			Timeout:  config.Duration(500 * time.Millisecond),
+			MaxBytes: 4096,
+		},
+	}
+	names := strings.Split(strings.ToLower(value), ",")
+	commands := make([]config.ContextCommand, 0, len(names))
+	for _, name := range names {
+		name = strings.TrimSpace(name)
+		if name == "none" && len(names) == 1 {
+			return []config.ContextCommand{}, nil
+		}
+		command, ok := presets[name]
+		if !ok {
+			return nil, fmt.Errorf("unknown context command preset %q (want git, files, or none)", name)
+		}
+		commands = append(commands, command)
+	}
+	return commands, nil
 }

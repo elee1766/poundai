@@ -29,6 +29,10 @@ func (d *Duration) UnmarshalYAML(node *yaml.Node) error {
 	return nil
 }
 
+func (d Duration) MarshalYAML() (any, error) {
+	return time.Duration(d).String(), nil
+}
+
 // Std returns the standard library duration, or def when unset.
 func (d Duration) Std(def time.Duration) time.Duration {
 	if d == 0 {
