@@ -35,6 +35,10 @@ func TestOpenAIComplete(t *testing.T) {
 		Model:       "test-model",
 		Temperature: &temp,
 		MaxTokens:   64,
+		ExtraHeaders: map[string]string{
+			"authorization": "Bearer wrong-key",
+			"X-Test":        "present",
+		},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -138,8 +142,8 @@ func TestAnthropicComplete(t *testing.T) {
 		if r.Header.Get("x-api-key") != "ant-key" {
 			t.Errorf("x-api-key = %q", r.Header.Get("x-api-key"))
 		}
-		if r.Header.Get("anthropic-version") == "" {
-			t.Error("missing anthropic-version header")
+		if r.Header.Get("anthropic-version") != anthropicVersion {
+			t.Errorf("anthropic-version = %q", r.Header.Get("anthropic-version"))
 		}
 		json.NewEncoder(w).Encode(map[string]any{
 			"content": []map[string]string{{"type": "text", "text": "rg TODO"}},
@@ -147,7 +151,16 @@ func TestAnthropicComplete(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	p, err := New(config.Service{Provider: "anthropic", BaseURL: srv.URL, APIKey: "ant-key", Model: "claude-test"})
+	p, err := New(config.Service{
+		Provider: "anthropic",
+		BaseURL:  srv.URL,
+		APIKey:   "ant-key",
+		Model:    "claude-test",
+		ExtraHeaders: map[string]string{
+			"X-API-KEY":         "wrong-key",
+			"Anthropic-Version": "wrong-version",
+		},
+	})
 	if err != nil {
 		t.Fatal(err)
 	}

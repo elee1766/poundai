@@ -29,6 +29,10 @@ func (d *Duration) UnmarshalYAML(node *yaml.Node) error {
 	return nil
 }
 
+func (d Duration) MarshalYAML() (any, error) {
+	return time.Duration(d).String(), nil
+}
+
 // Std returns the standard library duration, or def when unset.
 func (d Duration) Std(def time.Duration) time.Duration {
 	if d == 0 {
@@ -40,16 +44,16 @@ func (d Duration) Std(def time.Duration) time.Duration {
 // Service configures a single provider profile.
 type Service struct {
 	Provider     string            `yaml:"provider"` // openai | ollama | gemini | anthropic | bedrock
-	BaseURL      string            `yaml:"base_url"`
-	APIKey       string            `yaml:"api_key"`
-	APIKeyEnv    string            `yaml:"api_key_env"`
+	BaseURL      string            `yaml:"base_url,omitempty"`
+	APIKey       string            `yaml:"api_key,omitempty"`
+	APIKeyEnv    string            `yaml:"api_key_env,omitempty"`
 	Model        string            `yaml:"model"`
-	Temperature  *float64          `yaml:"temperature"`
-	MaxTokens    int               `yaml:"max_tokens"`
-	Timeout      Duration          `yaml:"timeout"`
-	Organization string            `yaml:"organization"` // openai
-	Region       string            `yaml:"region"`       // bedrock
-	ExtraHeaders map[string]string `yaml:"extra_headers"`
+	Temperature  *float64          `yaml:"temperature,omitempty"`
+	MaxTokens    int               `yaml:"max_tokens,omitempty"`
+	Timeout      Duration          `yaml:"timeout,omitempty"`
+	Organization string            `yaml:"organization,omitempty"` // openai
+	Region       string            `yaml:"region,omitempty"`       // bedrock
+	ExtraHeaders map[string]string `yaml:"extra_headers,omitempty"`
 }
 
 // ResolveAPIKey returns the API key, preferring the literal value and
@@ -75,26 +79,26 @@ type ContextCommand struct {
 
 // Context configures what extra context gets injected into the prompt.
 type Context struct {
-	Cwd      bool             `yaml:"cwd"`
-	OS       bool             `yaml:"os"`
-	History  int              `yaml:"history"` // last N history entries from $HISTFILE
-	Env      []string         `yaml:"env"`     // env var names to include
-	Commands []ContextCommand `yaml:"commands"`
+	Cwd      bool             `yaml:"cwd,omitempty"`
+	OS       bool             `yaml:"os,omitempty"`
+	History  int              `yaml:"history,omitempty"` // last N history entries from $HISTFILE
+	Env      []string         `yaml:"env,omitempty"`     // env var names to include
+	Commands []ContextCommand `yaml:"commands,omitempty"`
 }
 
 // Prompt configures the system prompt.
 type Prompt struct {
-	System        string `yaml:"system"`         // full override of the system prompt
-	SystemExtra   string `yaml:"system_extra"`   // appended to the base system prompt
-	OptimizedFile string `yaml:"optimized_file"` // prompt artifact: {system, demos} JSON (see prompt.example.json)
+	System        string `yaml:"system,omitempty"`         // full override of the system prompt
+	SystemExtra   string `yaml:"system_extra,omitempty"`   // appended to the base system prompt
+	OptimizedFile string `yaml:"optimized_file,omitempty"` // prompt artifact: {system, demos} JSON (see prompt.example.json)
 }
 
 // Config is the root configuration.
 type Config struct {
 	Service  string             `yaml:"service"`
 	Services map[string]Service `yaml:"services"`
-	Prompt   Prompt             `yaml:"prompt"`
-	Context  Context            `yaml:"context"`
+	Prompt   Prompt             `yaml:"prompt,omitempty"`
+	Context  Context            `yaml:"context,omitempty"`
 }
 
 // configRelPath is the config file path relative to XDG config directories.
@@ -108,6 +112,10 @@ func DefaultPath() string {
 	if path, err := xdg.SearchConfigFile(configRelPath); err == nil {
 		return path
 	}
+	return filepath.Join(xdg.ConfigHome, configRelPath)
+}
+
+func UserPath() string {
 	return filepath.Join(xdg.ConfigHome, configRelPath)
 }
 

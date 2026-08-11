@@ -54,17 +54,20 @@ add-zsh-hook precmd _poundai_highlight_setup
 # This is a plain function (not a ZLE widget) so it can be called from any context.
 # Returns 0 on success, 1 on error.
 _poundai_generate() {
-    local text=$1 cursor=$2 errfile
+    local text=$1 cursor=$2 errfile prefix byte_cursor
     local service=${ZSH_POUNDAI_SERVICE:-${POUNDAI_SERVICE:-}}
     local config=${ZSH_POUNDAI_CONFIG:-${POUNDAI_CONFIG:-}}
     errfile=$(mktemp "${TMPDIR:-/tmp}/poundai.XXXXXX") || return 1
+    prefix=${text[1,$cursor]}
+    byte_cursor=$(printf '%s' "$prefix" | LC_ALL=C wc -c)
+    byte_cursor=${byte_cursor//[[:space:]]/}
 
     REPLY=$(printf '%s' "$text" | \
         POUNDAI_HISTFILE="$HISTFILE" \
         POUNDAI_SERVICE="$service" \
         POUNDAI_CONFIG="$config" \
         POUNDAI_SHELL=zsh \
-        "$ZSH_POUNDAI_BIN" "$cursor" 2>"$errfile")
+        "$ZSH_POUNDAI_BIN" "$byte_cursor" 2>"$errfile")
     local rc=$?
 
     if (( rc != 0 )); then

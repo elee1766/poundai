@@ -60,6 +60,21 @@ func New(svc config.Service) (Provider, error) {
 	}
 }
 
+func mergeHeaders(headers, extra map[string]string) {
+	for key, value := range extra {
+		reserved := false
+		for existing := range headers {
+			if strings.EqualFold(key, existing) {
+				reserved = true
+				break
+			}
+		}
+		if !reserved {
+			headers[key] = value
+		}
+	}
+}
+
 // httpClient returns an http.Client with the service timeout applied.
 func httpClient(svc config.Service) *http.Client {
 	return &http.Client{Timeout: svc.Timeout.Std(DefaultTimeout)}

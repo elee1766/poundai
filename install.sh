@@ -92,7 +92,7 @@ if [ ! -e "$config_file" ] && [ "${POUNDAI_NO_INSTALL_CONFIG:-0}" != 1 ]; then
         */*) mkdir -p "${config_file%/*}" ;;
     esac
     install -m 600 "$tmp/config.example.yaml" "$config_file"
-    printf 'poundai: created %s; edit it with your provider and model\n' "$config_file"
+    printf 'poundai: created %s; run "poundai init" or edit it with your provider and model\n' "$config_file"
 fi
 
 shell_path=${SHELL:-}

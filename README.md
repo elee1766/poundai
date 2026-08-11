@@ -24,9 +24,33 @@ standalone binary for linux or macos on amd64 or arm64. both plugins are bundled
 into that binary. on the first install, the script also puts the example config
 at `${XDG_CONFIG_HOME:-$HOME/.config}/poundai/config.yml` for you to edit.
 
+run the guided setup, then verify the selected provider and model. `init` asks
+before replacing an existing config:
+
+```sh
+poundai init
+poundai doctor
+```
+
+the wizard also configures recent history and optional `git` or `files` context
+commands. it includes 10 history entries and the `git` preset by default.
+
+use `poundai doctor -offline` to validate configuration and required credential
+variables without testing connectivity or credential validity.
+
 releases use utc calver tags: `YYYY.MM.DD`, then `.1`, `.2`, and so on if there
 is more than one release that day. every tested push to `master` makes a release,
 and you can also run the release workflow manually.
+
+#### arch linux
+
+install poundai from the aur with your preferred helper:
+
+```sh
+yay -S poundai
+mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/poundai"
+cp /usr/share/doc/poundai/config.example.yaml "${XDG_CONFIG_HOME:-$HOME/.config}/poundai/config.yml"
+```
 
 if you would rather build it yourself:
 
@@ -37,6 +61,22 @@ cp config.example.yaml "${XDG_CONFIG_HOME:-$HOME/.config}/poundai/config.yml"
 ```
 
 then edit `config.yml` and tell poundai which provider and model to use.
+
+#### antidote
+
+to install the binary without modifying your zsh config, run:
+
+```sh
+curl -fsSL https://github.com/elee1766/poundai/releases/latest/download/install.sh | POUNDAI_NO_MODIFY_RC=1 sh
+```
+
+then add poundai to `${ZDOTDIR:-$HOME}/.zsh_plugins.txt`:
+
+```text
+elee1766/poundai
+```
+
+antidote will source `poundai.plugin.zsh` the next time it loads your plugins.
 
 ### model selection
 
@@ -56,8 +96,8 @@ context:
       max_bytes: 2048
 ```
 
-commands run concurrently through `zsh -c`, inherit the shell environment, and
-can use `pwd` or `$PWD`. poundai ignores failures and empty output.
+commands run concurrently through the active shell, inherit the shell
+environment, and can use `pwd` or `$PWD`. poundai ignores failures and empty output.
 `-no-context` skips custom commands and all built-in context.
 
 ### zsh

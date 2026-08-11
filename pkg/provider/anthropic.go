@@ -61,12 +61,7 @@ func (p *anthropic) Complete(ctx context.Context, messages []Message) (string, e
 		"x-api-key":         p.apiKey,
 		"anthropic-version": anthropicVersion,
 	}
-	for k, v := range p.svc.ExtraHeaders {
-		if _, reserved := headers[k]; reserved {
-			continue // don't let ExtraHeaders overwrite auth headers
-		}
-		headers[k] = v
-	}
+	mergeHeaders(headers, p.svc.ExtraHeaders)
 	system, rest := splitSystem(messages)
 	req := anthropicRequest{
 		Model:       p.model,

@@ -49,7 +49,9 @@ func (in Input) LinePrefix() string {
 // UserMessage builds the user-role message sent to the model: a shell shebang
 // followed by the full buffer.
 func (in Input) UserMessage() string {
-	return in.shebang() + in.Buffer
+	return in.shebang() +
+		"Complete the shell input at the <poundai-cursor/> marker. Return only the text to insert at the marker.\n\n" +
+		in.Prefix() + "<poundai-cursor/>" + in.Suffix()
 }
 
 // DefaultSystemPrompt is the built-in system prompt, used when neither
@@ -88,7 +90,7 @@ func Messages(system string, demos []prompt.Demo, in Input) []provider.Message {
 			comment = "# " + comment
 		}
 		msgs = append(msgs,
-			provider.Message{Role: "user", Content: in.shebang() + comment},
+			provider.Message{Role: "user", Content: (Input{Buffer: comment, Cursor: len(comment), Shell: in.Shell}).UserMessage()},
 			provider.Message{Role: "assistant", Content: d.Command},
 		)
 	}
@@ -115,14 +117,17 @@ func Clean(completion string, in Input) string {
 
 	prefix := in.Prefix()
 	linePrefix := in.LinePrefix()
+	echoedPrefix := false
 	switch {
 	case prefix != "" && strings.HasPrefix(completion, prefix):
 		completion = completion[len(prefix):]
+		echoedPrefix = true
 	case linePrefix != "" && strings.HasPrefix(completion, linePrefix):
 		completion = completion[len(linePrefix):]
+		echoedPrefix = true
 	}
 
-	if suffix := in.Suffix(); suffix != "" && strings.HasSuffix(completion, suffix) {
+	if suffix := in.Suffix(); echoedPrefix && suffix != "" && strings.HasSuffix(completion, suffix) {
 		completion = completion[:len(completion)-len(suffix)]
 	}
 

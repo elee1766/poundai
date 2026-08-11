@@ -80,12 +80,7 @@ func (p *openAI) Complete(ctx context.Context, messages []Message) (string, erro
 	if p.svc.Organization != "" {
 		headers["OpenAI-Organization"] = p.svc.Organization
 	}
-	for k, v := range p.svc.ExtraHeaders {
-		if _, reserved := headers[k]; reserved {
-			continue // don't let ExtraHeaders overwrite auth headers
-		}
-		headers[k] = v
-	}
+	mergeHeaders(headers, p.svc.ExtraHeaders)
 	req := chatRequest{
 		Model:       p.model,
 		Messages:    messages,
