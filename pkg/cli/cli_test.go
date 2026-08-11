@@ -108,6 +108,29 @@ func TestRunInitPreservesCase(t *testing.T) {
 	}
 }
 
+func TestRunInitHostedProviderSkipsBaseURL(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.yml")
+	input := strings.NewReader("Groq\nCustomModel\nCUSTOM_GROQ_KEY\n")
+	var out bytes.Buffer
+	if err := runInit([]string{"-config", path}, input, &out); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := config.Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	svc, err := cfg.Active("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if svc.Provider != "groq" || svc.BaseURL != "" || svc.Model != "CustomModel" || svc.APIKeyEnv != "CUSTOM_GROQ_KEY" {
+		t.Errorf("service = %+v", svc)
+	}
+	if strings.Contains(out.String(), "Base URL") {
+		t.Errorf("hosted provider prompted for base URL: %q", out.String())
+	}
+}
+
 func TestRunInitRefusesExistingConfig(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.yml")
 	if err := os.WriteFile(path, []byte("existing"), 0o600); err != nil {

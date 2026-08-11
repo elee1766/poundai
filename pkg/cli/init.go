@@ -105,7 +105,7 @@ func runInit(args []string, stdin io.Reader, stdout io.Writer) error {
 	if !ok {
 		return fmt.Errorf("unknown provider %q", opts.provider)
 	}
-	if opts.baseURL == "" {
+	if opts.baseURL == "" && promptsForBaseURL(opts.provider) {
 		if opts.nonInteractive {
 			opts.baseURL = defaults.baseURL
 		} else {
@@ -227,4 +227,8 @@ func needsAPIKey(providerName, baseURL string) bool {
 		return false
 	}
 	return providerName != "openai" || baseURL == ""
+}
+
+func promptsForBaseURL(providerName string) bool {
+	return providerName == "ollama" || providerName == "openai"
 }
