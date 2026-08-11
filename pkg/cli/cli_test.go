@@ -67,7 +67,7 @@ func TestRunInitNonInteractive(t *testing.T) {
 	if svc.BaseURL != "http://localhost:11434" {
 		t.Errorf("base URL = %q", svc.BaseURL)
 	}
-	if !cfg.Context.Cwd || !cfg.Context.OS || cfg.Context.History != 0 {
+	if !cfg.Context.Cwd || !cfg.Context.OS || cfg.Context.History != 10 {
 		t.Errorf("context = %+v", cfg.Context)
 	}
 	if !strings.Contains(out.String(), "poundai doctor") {
@@ -128,6 +128,33 @@ func TestRunInitHostedProviderSkipsBaseURL(t *testing.T) {
 	}
 	if strings.Contains(out.String(), "Base URL") {
 		t.Errorf("hosted provider prompted for base URL: %q", out.String())
+	}
+}
+
+func TestRunInitConfiguresHistory(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.yml")
+	input := strings.NewReader("ollama\n\n\n25\n")
+	if err := runInit([]string{"-config", path}, input, io.Discard); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := config.Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Context.History != 25 {
+		t.Errorf("history = %d", cfg.Context.History)
+	}
+}
+
+func TestRunInitRejectsNegativeHistory(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.yml")
+	err := runInit(
+		[]string{"-config", path, "-non-interactive", "-history", "-1"},
+		strings.NewReader(""),
+		io.Discard,
+	)
+	if err == nil || !strings.Contains(err.Error(), "history count must be non-negative") {
+		t.Fatalf("error = %v", err)
 	}
 }
 

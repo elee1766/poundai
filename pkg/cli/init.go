@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	poundai "github.com/elee1766/poundai"
@@ -24,6 +25,7 @@ type initOptions struct {
 	apiKeyEnv      string
 	model          string
 	region         string
+	history        int
 	force          bool
 	nonInteractive bool
 }
@@ -54,6 +56,7 @@ func runInit(args []string, stdin io.Reader, stdout io.Writer) error {
 	fs.StringVar(&opts.apiKeyEnv, "api-key-env", "", "environment variable containing the API key")
 	fs.StringVar(&opts.model, "model", "", "model name")
 	fs.StringVar(&opts.region, "region", "", "AWS region for Bedrock")
+	fs.IntVar(&opts.history, "history", 10, "number of recent history entries to include (0 disables history)")
 	fs.BoolVar(&opts.force, "force", false, "replace an existing config without confirmation")
 	fs.BoolVar(&opts.nonInteractive, "non-interactive", false, "use flags and defaults without prompting")
 	if err := fs.Parse(args); err != nil {
@@ -65,6 +68,12 @@ func runInit(args []string, stdin io.Reader, stdout io.Writer) error {
 	if fs.NArg() != 0 {
 		return fmt.Errorf("init: unexpected arguments: %s", strings.Join(fs.Args(), " "))
 	}
+	historySet := false
+	fs.Visit(func(f *flag.Flag) {
+		if f.Name == "history" {
+			historySet = true
+		}
+	})
 
 	reader := bufio.NewReader(stdin)
 	path := initConfigPath(opts.configPath)
@@ -145,6 +154,19 @@ func runInit(args []string, stdin io.Reader, stdout io.Writer) error {
 			}
 		}
 	}
+	if !opts.nonInteractive && !historySet {
+		value, err := ask(reader, stdout, "Recent history entries to include (0 disables history)", "10")
+		if err != nil {
+			return err
+		}
+		opts.history, err = strconv.Atoi(value)
+		if err != nil {
+			return fmt.Errorf("invalid history count %q", value)
+		}
+	}
+	if opts.history < 0 {
+		return fmt.Errorf("history count must be non-negative")
+	}
 
 	svc := config.Service{
 		Provider:  opts.provider,
@@ -156,7 +178,7 @@ func runInit(args []string, stdin io.Reader, stdout io.Writer) error {
 	cfg := config.Config{
 		Service:  opts.name,
 		Services: map[string]config.Service{opts.name: svc},
-		Context:  config.Context{Cwd: true, OS: true},
+		Context:  config.Context{Cwd: true, OS: true, History: opts.history},
 	}
 	data, err := yaml.Marshal(cfg)
 	if err != nil {
