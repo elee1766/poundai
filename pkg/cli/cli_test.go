@@ -76,6 +76,9 @@ func TestRunInitNonInteractive(t *testing.T) {
 	if !strings.Contains(out.String(), "poundai doctor") {
 		t.Errorf("output = %q", out.String())
 	}
+	if !strings.Contains(out.String(), "To configure more providers or context commands, edit "+path) {
+		t.Errorf("output = %q", out.String())
+	}
 	info, err := os.Stat(path)
 	if err != nil {
 		t.Fatal(err)

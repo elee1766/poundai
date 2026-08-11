@@ -213,7 +213,12 @@ func runInit(args []string, stdin io.Reader, stdout io.Writer) error {
 	if err := writeConfig(path, data); err != nil {
 		return fmt.Errorf("writing config: %w", err)
 	}
-	if _, err := fmt.Fprintf(stdout, "Created %s\nRun 'poundai doctor' to verify the setup.\n", path); err != nil {
+	if _, err := fmt.Fprintf(
+		stdout,
+		"Created %s\nRun 'poundai doctor' to verify the setup.\n\nTo configure more providers or context commands, edit %s.\n",
+		path,
+		path,
+	); err != nil {
 		return err
 	}
 	return nil
