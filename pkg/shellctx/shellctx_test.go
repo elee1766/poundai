@@ -112,38 +112,24 @@ func TestCommandMaxBytes(t *testing.T) {
 	}
 }
 
+func TestCommandInheritsWorkingDirectoryAndEnvironment(t *testing.T) {
+	dir := t.TempDir()
+	t.Chdir(dir)
+	t.Setenv("POUNDAI_TEST_CONTEXT", "inherited")
+
+	sections := runCommands(context.Background(), []config.ContextCommand{
+		{Name: "session", Command: `printf '%s\n%s' "$PWD" "$POUNDAI_TEST_CONTEXT"`},
+	})
+	if len(sections) != 1 || sections[0].Body != dir+"\ninherited" {
+		t.Errorf("sections = %+v", sections)
+	}
+}
+
 func TestCommandTimeout(t *testing.T) {
 	sections := runCommands(context.Background(), []config.ContextCommand{
 		{Name: "slow", Command: "sleep 5; echo done", Timeout: config.Duration(50 * 1e6)}, // 50ms
 	})
 	if len(sections) != 0 {
 		t.Errorf("timed-out command should produce no section, got %+v", sections)
-	}
-}
-
-func TestContextHook(t *testing.T) {
-	hookPath := filepath.Join(t.TempDir(), "context")
-	if err := os.WriteFile(hookPath, []byte("#!/bin/sh\nprintf 'project=%s' \"$POUNDAI_HOOK_TEST\"\n"), 0o700); err != nil {
-		t.Fatal(err)
-	}
-	t.Setenv("POUNDAI_HOOK_TEST", "custom")
-
-	sections := Gather(context.Background(), config.Context{Hook: hookPath})
-	if len(sections) != 1 {
-		t.Fatalf("got %d sections, want 1: %+v", len(sections), sections)
-	}
-	if sections[0].Name != "custom context" || sections[0].Body != "project=custom" {
-		t.Errorf("hook section = %+v", sections[0])
-	}
-}
-
-func TestContextHookFailureIsSkipped(t *testing.T) {
-	hookPath := filepath.Join(t.TempDir(), "context")
-	if err := os.WriteFile(hookPath, []byte("#!/bin/sh\nexit 1\n"), 0o700); err != nil {
-		t.Fatal(err)
-	}
-
-	if sections := Gather(context.Background(), config.Context{Hook: hookPath}); len(sections) != 0 {
-		t.Errorf("failed hook should produce no section, got %+v", sections)
 	}
 }

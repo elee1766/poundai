@@ -41,7 +41,6 @@ context:
   os: true
   history: 10
   env: [VIRTUAL_ENV]
-  hook: context
   commands:
     - name: git
       command: git status -sb
@@ -71,9 +70,6 @@ context:
 	if !cfg.Context.Cwd || cfg.Context.History != 10 {
 		t.Errorf("context = %+v", cfg.Context)
 	}
-	if cfg.Context.Hook != filepath.Join(filepath.Dir(path), "context") {
-		t.Errorf("hook = %q", cfg.Context.Hook)
-	}
 	if len(cfg.Context.Commands) != 1 || cfg.Context.Commands[0].Timeout.Std(0) != 500*time.Millisecond {
 		t.Errorf("commands = %+v", cfg.Context.Commands)
 	}
@@ -89,11 +85,10 @@ context:
 }
 
 func TestDefaultPath(t *testing.T) {
-	oldHome, oldDirs := xdg.ConfigHome, xdg.ConfigDirs
-	xdg.ConfigHome, xdg.ConfigDirs = t.TempDir(), nil
-	t.Cleanup(func() {
-		xdg.ConfigHome, xdg.ConfigDirs = oldHome, oldDirs
-	})
+	t.Cleanup(xdg.Reload)
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+	t.Setenv("XDG_CONFIG_DIRS", t.TempDir())
+	xdg.Reload()
 
 	want := filepath.Join(xdg.ConfigHome, "poundai", "config.yml")
 	if got := DefaultPath(); got != want {

@@ -44,30 +44,21 @@ we support many models, but for a speed/performance balance, i find that gpt-oss
 
 ### custom context
 
-poundai can run an executable hook when `context.commands` is not enough. it
-runs from your current directory on every completion, and whatever it prints is
-added to the llm context:
-
-```sh
-mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/poundai"
-cat > "${XDG_CONFIG_HOME:-$HOME/.config}/poundai/context" <<'EOF'
-#!/bin/sh
-printf 'active project: %s\n' "${PROJECT_NAME:-unknown}"
-EOF
-chmod +x "${XDG_CONFIG_HOME:-$HOME/.config}/poundai/context"
-```
-
-then point at it from `config.yml`:
+poundai can run commands from your current directory on every completion and
+add their output to the llm context:
 
 ```yaml
 context:
-  hook: context
+  commands:
+    - name: git
+      command: git status -sb 2>/dev/null
+      timeout: 500ms
+      max_bytes: 2048
 ```
 
-relative paths start from the directory containing `config.yml`. environment
-variables and a leading `~` work too. poundai ignores failures and empty output,
-and cuts the hook off after two seconds or 4 KiB of output. `-no-context` skips
-the hook and all built-in context.
+commands run concurrently through `zsh -c`, inherit the shell environment, and
+can use `pwd` or `$PWD`. poundai ignores failures and empty output.
+`-no-context` skips custom commands and all built-in context.
 
 ### zsh
 

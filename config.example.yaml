@@ -85,7 +85,6 @@ context:
   os: true           # OS/arch + distro pretty-name
   history: 10        # last N commands from $HISTFILE (0 = off)
   env: []            # env var names to include, e.g. [VIRTUAL_ENV, KUBECONFIG]
-  # hook: context     # executable path, relative to this file (2s / 4 KiB limit)
   commands:          # arbitrary commands whose output is injected
     - name: git
       command: git status -sb 2>/dev/null

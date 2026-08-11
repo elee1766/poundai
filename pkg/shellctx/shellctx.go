@@ -1,6 +1,6 @@
 // Package shellctx gathers extra shell context that gets injected into the
-// completion prompt: cwd, OS info, recent history, env vars, hook output, and
-// the output of user-configured commands.
+// completion prompt: cwd, OS info, recent history, env vars, and the output of
+// user-configured commands.
 package shellctx
 
 import (
@@ -62,9 +62,6 @@ func Gather(ctx context.Context, cfg config.Context) []Section {
 	}
 
 	sections = append(sections, runCommands(ctx, cfg.Commands)...)
-	if hook := runContextHook(ctx, cfg.Hook); hook.Body != "" {
-		sections = append(sections, hook)
-	}
 	return sections
 }
 
@@ -237,22 +234,4 @@ func runCommand(ctx context.Context, cc config.ContextCommand) Section {
 		name = cc.Command
 	}
 	return Section{Name: name, Body: string(out)}
-}
-
-func runContextHook(ctx context.Context, path string) Section {
-	if path == "" {
-		return Section{}
-	}
-
-	cctx, cancel := context.WithTimeout(ctx, defaultCommandTimeout)
-	defer cancel()
-
-	out, err := exec.CommandContext(cctx, path).Output()
-	if err != nil || len(out) == 0 {
-		return Section{}
-	}
-	if len(out) > defaultCommandMaxBytes {
-		out = out[:defaultCommandMaxBytes]
-	}
-	return Section{Name: "custom context", Body: string(out)}
 }

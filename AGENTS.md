@@ -38,7 +38,7 @@ The end-to-end test in `cmd/poundai/main_test.go` builds the binary and runs it 
 
 Config lives at `$XDG_CONFIG_HOME/poundai/config.yml`. The loader uses `yaml.KnownFields(true)` — unknown keys cause hard errors. See `config.example.yaml` for the full schema.
 
-`context.hook` can name an executable whose stdout is appended to shell context for every completion.
+`context.commands` run concurrently through `zsh -c`; their stdout is appended to shell context for every completion.
 
 API keys resolve via `api_key` (literal) or `api_key_env` (env var name). The active service is selected by `service:` in config, `$POUNDAI_SERVICE` env, or `-service` flag.
 

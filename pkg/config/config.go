@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/adrg/xdg"
@@ -80,7 +79,6 @@ type Context struct {
 	OS       bool             `yaml:"os"`
 	History  int              `yaml:"history"` // last N history entries from $HISTFILE
 	Env      []string         `yaml:"env"`     // env var names to include
-	Hook     string           `yaml:"hook"`    // executable whose stdout is included
 	Commands []ContextCommand `yaml:"commands"`
 }
 
@@ -128,9 +126,6 @@ func Load(path string) (*Config, error) {
 	if err := dec.Decode(&cfg); err != nil {
 		return nil, fmt.Errorf("parsing %s: %w", path, err)
 	}
-	if cfg.Context.Hook != "" {
-		cfg.Context.Hook = resolvePath(cfg.Context.Hook, filepath.Dir(path))
-	}
 	if len(cfg.Services) == 0 {
 		return nil, fmt.Errorf("%s: no services defined", path)
 	}
@@ -147,19 +142,6 @@ func Load(path string) (*Config, error) {
 		return nil, fmt.Errorf("%s: selected service %q not found in services", path, cfg.Service)
 	}
 	return &cfg, nil
-}
-
-func resolvePath(path, baseDir string) string {
-	path = os.ExpandEnv(path)
-	if path == "~" || strings.HasPrefix(path, "~/") {
-		if home, err := os.UserHomeDir(); err == nil {
-			path = filepath.Join(home, strings.TrimPrefix(path, "~"))
-		}
-	}
-	if !filepath.IsAbs(path) {
-		path = filepath.Join(baseDir, path)
-	}
-	return path
 }
 
 // Active returns the selected service profile. name overrides the config's
