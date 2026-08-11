@@ -1,0 +1,16 @@
+pkgbase = poundai
+	pkgdesc = LLM-generated command completions for zsh and bash
+	pkgver = 2026.08.11
+	pkgrel = 1
+	url = https://github.com/elee1766/poundai
+	arch = x86_64
+	arch = aarch64
+	license = LicenseRef-Unknown
+	checkdepends = zsh
+	makedepends = go
+	depends = glibc
+	options = !debug
+	source = poundai-2026.08.11.tar.gz::https://github.com/elee1766/poundai/archive/refs/tags/2026.08.11.tar.gz
+	sha256sums = 35f9e3e12849acf0f59d03c43ee6c73aa220c906a3d8e0f9f36e636e1f19f57a
+
+pkgname = poundai

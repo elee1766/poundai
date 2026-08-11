@@ -28,6 +28,16 @@ releases use utc calver tags: `YYYY.MM.DD`, then `.1`, `.2`, and so on if there
 is more than one release that day. every tested push to `master` makes a release,
 and you can also run the release workflow manually.
 
+#### arch linux
+
+install poundai from the aur with your preferred helper:
+
+```sh
+yay -S poundai
+mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/poundai"
+cp /usr/share/doc/poundai/config.example.yaml "${XDG_CONFIG_HOME:-$HOME/.config}/poundai/config.yml"
+```
+
 if you would rather build it yourself:
 
 ```sh
@@ -37,6 +47,22 @@ cp config.example.yaml "${XDG_CONFIG_HOME:-$HOME/.config}/poundai/config.yml"
 ```
 
 then edit `config.yml` and tell poundai which provider and model to use.
+
+#### antidote
+
+to install the binary without modifying your zsh config, run:
+
+```sh
+curl -fsSL https://github.com/elee1766/poundai/releases/latest/download/install.sh | POUNDAI_NO_MODIFY_RC=1 sh
+```
+
+then add poundai to `${ZDOTDIR:-$HOME}/.zsh_plugins.txt`:
+
+```text
+elee1766/poundai
+```
+
+antidote will source `poundai.plugin.zsh` the next time it loads your plugins.
 
 ### model selection
 

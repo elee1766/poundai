@@ -151,3 +151,58 @@ jobs:
           --target "$GITHUB_SHA"
           --title "poundai $VERSION"
           --generate-notes
+
+  publish-aur:
+    if: vars.AUR_ENABLED == 'true'
+    needs:
+      - version
+      - release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Configure AUR SSH key
+        env:
+          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        run: |
+          test -n "$AUR_SSH_PRIVATE_KEY"
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$AUR_SSH_PRIVATE_KEY" > ~/.ssh/aur
+          chmod 600 ~/.ssh/aur
+          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+          printf '%s\n' \
+            'Host aur.archlinux.org' \
+            '  IdentityFile ~/.ssh/aur' \
+            '  User aur' >> ~/.ssh/config
+
+      - name: Update package metadata
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          archive="https://github.com/elee1766/poundai/archive/refs/tags/$VERSION.tar.gz"
+          checksum=$(curl --retry 5 --retry-all-errors -fsSL "$archive" | sha256sum | cut -d ' ' -f 1)
+          sed -i \
+            -e "s/^pkgver=.*/pkgver=$VERSION/" \
+            -e 's/^pkgrel=.*/pkgrel=1/' \
+            -e "s/^sha256sums=.*/sha256sums=('$checksum')/" \
+            packaging/aur/PKGBUILD
+          docker run --rm \
+            -v "$PWD/packaging/aur:/pkg" \
+            archlinux:base-devel \
+            bash -c "useradd -m builder && chown -R builder /pkg && su builder -c 'cd /pkg && makepkg --printsrcinfo > .SRCINFO'"
+
+      - name: Publish AUR package
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          git clone ssh://aur@aur.archlinux.org/poundai.git aur-repo
+          cp packaging/aur/PKGBUILD packaging/aur/.SRCINFO aur-repo/
+          cd aur-repo
+          if [ -z "$(git status --porcelain -- PKGBUILD .SRCINFO)" ]; then
+            exit 0
+          fi
+          git config user.name 'poundai release bot'
+          git config user.email 'elee1766@users.noreply.github.com'
+          git add PKGBUILD .SRCINFO
+          git commit -m "Update to $VERSION"
+          git push

@@ -1,0 +1,39 @@
+pkgname=poundai
+pkgver=2026.08.11
+pkgrel=1
+pkgdesc='LLM-generated command completions for zsh and bash'
+arch=('x86_64' 'aarch64')
+url='https://github.com/elee1766/poundai'
+license=('LicenseRef-Unknown')
+depends=('glibc')
+makedepends=('go')
+checkdepends=('zsh')
+options=('!debug')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/$pkgver.tar.gz")
+sha256sums=('35f9e3e12849acf0f59d03c43ee6c73aa220c906a3d8e0f9f36e636e1f19f57a')
+
+build() {
+  cd "$pkgname-$pkgver"
+  export GOFLAGS='-buildvcs=false -mod=readonly -modcacherw'
+  go build -buildmode=pie -trimpath \
+    -ldflags "-linkmode=external -extldflags '$LDFLAGS' -X github.com/elee1766/poundai/pkg/cli.Version=$pkgver" \
+    -o poundai ./cmd/poundai
+}
+
+check() {
+  cd "$pkgname-$pkgver"
+  go test ./...
+  zsh -n poundai.plugin.zsh
+  bash -n poundai.plugin.bash
+  bash tests/bash_plugin_test.bash
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  install -Dm755 poundai "$pkgdir/usr/bin/poundai"
+  install -Dm644 config.example.yaml \
+    "$pkgdir/usr/share/doc/$pkgname/config.example.yaml"
+  install -d "$pkgdir/usr/share/licenses/$pkgname"
+  printf '%s\n' 'The upstream project does not currently declare a license.' \
+    > "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
