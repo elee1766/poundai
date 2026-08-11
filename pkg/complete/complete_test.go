@@ -43,6 +43,13 @@ func TestClean(t *testing.T) {
 			want:       ". -name '*.go'",
 		},
 		{
+			name:       "preserves insertion matching suffix",
+			completion: "foo",
+			buffer:     "printf %s foo",
+			cursor:     10,
+			want:       "foo",
+		},
+		{
 			name:       "comment gets newline prepended",
 			completion: "docker ps -a",
 			buffer:     "# list all docker containers",
@@ -174,13 +181,21 @@ func TestSystemMessage(t *testing.T) {
 
 func TestUserMessage(t *testing.T) {
 	in := Input{Buffer: "ls", Cursor: 2}
-	if got := in.UserMessage(); got != "#!/bin/zsh\n\nls" {
+	want := "#!/bin/zsh\n\nComplete the shell input at the <poundai-cursor/> marker. Return only the text to insert at the marker.\n\nls<poundai-cursor/>"
+	if got := in.UserMessage(); got != want {
 		t.Errorf("UserMessage() = %q", got)
 	}
 
 	bash := Input{Buffer: "ls", Cursor: 2, Shell: "bash"}
-	if got := bash.UserMessage(); got != "#!/bin/bash\n\nls" {
+	bashWant := "#!/bin/bash\n\nComplete the shell input at the <poundai-cursor/> marker. Return only the text to insert at the marker.\n\nls<poundai-cursor/>"
+	if got := bash.UserMessage(); got != bashWant {
 		t.Errorf("bash UserMessage() = %q", got)
+	}
+
+	middle := Input{Buffer: "find  | wc -l", Cursor: 5}
+	middleWant := "#!/bin/zsh\n\nComplete the shell input at the <poundai-cursor/> marker. Return only the text to insert at the marker.\n\nfind <poundai-cursor/> | wc -l"
+	if got := middle.UserMessage(); got != middleWant {
+		t.Errorf("middle UserMessage() = %q", got)
 	}
 }
 
@@ -197,13 +212,15 @@ func TestMessages(t *testing.T) {
 	if msgs[0].Role != "system" || msgs[0].Content != "system prompt" {
 		t.Errorf("system message = %+v", msgs[0])
 	}
-	if msgs[1].Role != "user" || msgs[1].Content != "#!/bin/zsh\n\n# show disk space" {
+	demoWant := "#!/bin/zsh\n\nComplete the shell input at the <poundai-cursor/> marker. Return only the text to insert at the marker.\n\n# show disk space<poundai-cursor/>"
+	if msgs[1].Role != "user" || msgs[1].Content != demoWant {
 		t.Errorf("demo user = %+v", msgs[1])
 	}
 	if msgs[2].Role != "assistant" || msgs[2].Content != "df -h" {
 		t.Errorf("demo assistant = %+v", msgs[2])
 	}
-	if msgs[3].Role != "user" || msgs[3].Content != "#!/bin/zsh\n\n# list files" {
+	userWant := "#!/bin/zsh\n\nComplete the shell input at the <poundai-cursor/> marker. Return only the text to insert at the marker.\n\n# list files<poundai-cursor/>"
+	if msgs[3].Role != "user" || msgs[3].Content != userWant {
 		t.Errorf("user message = %+v", msgs[3])
 	}
 }
@@ -215,7 +232,8 @@ func TestMessagesDemoWithoutHash(t *testing.T) {
 	in := Input{Buffer: "ls", Cursor: 2}
 	msgs := Messages("sys", demos, in)
 	// Comment without "#" should get "# " prepended.
-	if msgs[1].Content != "#!/bin/zsh\n\n# list pods" {
+	want := "#!/bin/zsh\n\nComplete the shell input at the <poundai-cursor/> marker. Return only the text to insert at the marker.\n\n# list pods<poundai-cursor/>"
+	if msgs[1].Content != want {
 		t.Errorf("demo user = %q", msgs[1].Content)
 	}
 }
@@ -223,10 +241,12 @@ func TestMessagesDemoWithoutHash(t *testing.T) {
 func TestBashMessagesAndClean(t *testing.T) {
 	in := Input{Buffer: "# list files", Cursor: 12, Shell: "bash"}
 	msgs := Messages("sys", []prompt.Demo{{Comment: "show date", Command: "date"}}, in)
-	if got := msgs[1].Content; got != "#!/bin/bash\n\n# show date" {
+	demoWant := "#!/bin/bash\n\nComplete the shell input at the <poundai-cursor/> marker. Return only the text to insert at the marker.\n\n# show date<poundai-cursor/>"
+	if got := msgs[1].Content; got != demoWant {
 		t.Errorf("demo user = %q", got)
 	}
-	if got := msgs[3].Content; got != "#!/bin/bash\n\n# list files" {
+	userWant := "#!/bin/bash\n\nComplete the shell input at the <poundai-cursor/> marker. Return only the text to insert at the marker.\n\n# list files<poundai-cursor/>"
+	if got := msgs[3].Content; got != userWant {
 		t.Errorf("user message = %q", got)
 	}
 	if got := Clean("#!/bin/bash\n\nls -la", in); got != "\nls -la" {

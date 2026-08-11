@@ -1,5 +1,6 @@
 #!/bin/sh
 set -eu
+unset ZDOTDIR
 
 repo_root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/poundai-install-test.XXXXXX")

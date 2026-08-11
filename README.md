@@ -24,6 +24,17 @@ standalone binary for linux or macos on amd64 or arm64. both plugins are bundled
 into that binary. on the first install, the script also puts the example config
 at `${XDG_CONFIG_HOME:-$HOME/.config}/poundai/config.yml` for you to edit.
 
+run the guided setup, then verify the selected provider and model. `init` asks
+before replacing an existing config:
+
+```sh
+poundai init
+poundai doctor
+```
+
+use `poundai doctor -offline` to validate configuration and required credential
+variables without testing connectivity or credential validity.
+
 releases use utc calver tags: `YYYY.MM.DD`, then `.1`, `.2`, and so on if there
 is more than one release that day. every tested push to `master` makes a release,
 and you can also run the release workflow manually.
@@ -82,8 +93,8 @@ context:
       max_bytes: 2048
 ```
 
-commands run concurrently through `zsh -c`, inherit the shell environment, and
-can use `pwd` or `$PWD`. poundai ignores failures and empty output.
+commands run concurrently through the active shell, inherit the shell
+environment, and can use `pwd` or `$PWD`. poundai ignores failures and empty output.
 `-no-context` skips custom commands and all built-in context.
 
 ### zsh

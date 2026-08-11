@@ -102,13 +102,31 @@ func TestRenderEmpty(t *testing.T) {
 
 func TestCommandMaxBytes(t *testing.T) {
 	sections := runCommands(context.Background(), []config.ContextCommand{
-		{Name: "big", Command: "printf 'x%.0s' {1..100}", MaxBytes: 10},
+		{Name: "big", Command: "printf 'xxxxxxxxxxxxxxxxxxxx'", MaxBytes: 10},
 	})
 	if len(sections) != 1 {
 		t.Fatalf("got %d sections", len(sections))
 	}
 	if len(sections[0].Body) != 10 {
 		t.Errorf("body length = %d, want 10", len(sections[0].Body))
+	}
+}
+
+func TestCommandUsesActiveShell(t *testing.T) {
+	t.Setenv("POUNDAI_SHELL", "bash")
+	sections := runCommands(context.Background(), []config.ContextCommand{
+		{Name: "shell", Command: `printf '%s' "${BASH_VERSION:+bash}"`},
+	})
+	if len(sections) != 1 || sections[0].Body != "bash" {
+		t.Errorf("sections = %+v", sections)
+	}
+}
+
+func TestCommandShellFallsBack(t *testing.T) {
+	t.Setenv("POUNDAI_SHELL", "poundai-missing-shell")
+	t.Setenv("SHELL", "bash")
+	if got := filepath.Base(commandShell()); got != "bash" {
+		t.Errorf("commandShell() = %q", got)
 	}
 }
 

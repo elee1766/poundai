@@ -143,14 +143,15 @@ context:
 		}
 	}
 	// Demo pair formatted like a real request.
-	if gotMessages[1].Role != "user" || gotMessages[1].Content != "#!/bin/zsh\n\n# show free disk space" {
+	demoWant := "#!/bin/zsh\n\nComplete the shell input at the <poundai-cursor/> marker. Return only the text to insert at the marker.\n\n# show free disk space<poundai-cursor/>"
+	if gotMessages[1].Role != "user" || gotMessages[1].Content != demoWant {
 		t.Errorf("demo user message = %+v", gotMessages[1])
 	}
 	if gotMessages[2].Role != "assistant" || gotMessages[2].Content != "df -h" {
 		t.Errorf("demo assistant message = %+v", gotMessages[2])
 	}
-	// Final user message is shebang + buffer.
-	if gotMessages[3].Content != "#!/bin/zsh\n\n"+buffer {
+	userWant := "#!/bin/zsh\n\nComplete the shell input at the <poundai-cursor/> marker. Return only the text to insert at the marker.\n\n" + buffer + "<poundai-cursor/>"
+	if gotMessages[3].Content != userWant {
 		t.Errorf("user message = %q", gotMessages[3].Content)
 	}
 }

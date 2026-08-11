@@ -11,6 +11,7 @@ build:
 test:
 	go test ./...
 	zsh -n poundai.plugin.zsh
+	zsh tests/zsh_plugin_test.zsh
 	bash -n poundai.plugin.bash
 	bash tests/bash_plugin_test.bash
 	sh tests/install_test.sh

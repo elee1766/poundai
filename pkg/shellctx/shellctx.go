@@ -217,7 +217,8 @@ func runCommand(ctx context.Context, cc config.ContextCommand) Section {
 	cctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	cmd := exec.CommandContext(cctx, "zsh", "-c", cc.Command)
+	shell := commandShell()
+	cmd := exec.CommandContext(cctx, shell, "-c", cc.Command)
 	out, err := cmd.Output()
 	if err != nil || len(out) == 0 {
 		return Section{}
@@ -234,4 +235,16 @@ func runCommand(ctx context.Context, cc config.ContextCommand) Section {
 		name = cc.Command
 	}
 	return Section{Name: name, Body: string(out)}
+}
+
+func commandShell() string {
+	for _, candidate := range []string{os.Getenv("POUNDAI_SHELL"), os.Getenv("SHELL"), "/bin/sh"} {
+		if candidate == "" {
+			continue
+		}
+		if path, err := exec.LookPath(candidate); err == nil {
+			return path
+		}
+	}
+	return "/bin/sh"
 }

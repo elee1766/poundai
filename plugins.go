@@ -11,6 +11,9 @@ var zshPlugin string
 //go:embed poundai.plugin.bash
 var bashPlugin string
 
+//go:embed config.example.yaml
+var configExample string
+
 // Plugin returns the shell plugin source bundled into the binary.
 func Plugin(shell string) (string, error) {
 	switch shell {
@@ -21,4 +24,8 @@ func Plugin(shell string) (string, error) {
 	default:
 		return "", fmt.Errorf("unsupported shell %q (want zsh or bash)", shell)
 	}
+}
+
+func ConfigExample() string {
+	return configExample
 }

@@ -42,6 +42,15 @@ func ExpandPath(path string) string {
 // Run is the top-level entry point. It parses flags, reads stdin, loads
 // config, calls the LLM, and prints the cleaned completion to stdout.
 func Run() error {
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "init":
+			return runInit(os.Args[2:], os.Stdin, os.Stdout)
+		case "doctor":
+			return runDoctor(os.Args[2:], os.Stdout)
+		}
+	}
+
 	var (
 		configPath  = flag.String("config", "", "path to config file (default: $XDG_CONFIG_HOME/poundai/config.yml)")
 		service     = flag.String("service", "", "service profile to use (overrides config selector; also settable via $POUNDAI_SERVICE)")
@@ -50,7 +59,7 @@ func Run() error {
 		showVersion = flag.Bool("version", false, "print version and exit")
 	)
 	flag.Usage = func() {
-		fmt.Fprintf(flag.CommandLine.Output(), "usage: poundai [flags] <cursor>\n       poundai plugin <zsh|bash>\n\nreads the shell editing buffer on stdin; prints the completion on stdout\n\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "usage: poundai [flags] <cursor>\n       poundai init [flags]\n       poundai doctor [flags]\n       poundai plugin <zsh|bash>\n\nreads the shell editing buffer on stdin; prints the completion on stdout\n\n")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
@@ -90,14 +99,7 @@ func Run() error {
 	}
 	in := complete.Input{Buffer: string(buffer), Cursor: cursor, Shell: os.Getenv("POUNDAI_SHELL")}
 
-	path := *configPath
-	if path == "" {
-		if env := os.Getenv("POUNDAI_CONFIG"); env != "" {
-			path = env
-		} else {
-			path = config.DefaultPath()
-		}
-	}
+	path := resolveConfigPath(*configPath)
 	cfg, err := config.Load(path)
 	if err != nil {
 		return err
@@ -161,4 +163,14 @@ func Run() error {
 
 	fmt.Print(complete.Clean(raw, in))
 	return nil
+}
+
+func resolveConfigPath(path string) string {
+	if path == "" {
+		path = os.Getenv("POUNDAI_CONFIG")
+	}
+	if path == "" {
+		path = config.DefaultPath()
+	}
+	return ExpandPath(path)
 }
